@@ -8,12 +8,14 @@ import {
   consumeAuthorizationCode,
   createAuthorizationCode,
   createRefreshTokenRecord,
+  deleteUserById,
   ensureRefreshTokenIsActive,
   findRefreshTokenRecord,
   getUserById,
   listConnectedApps,
   listUserClientSessions,
   registerUser,
+  requestUserVerification,
   revokeAppSessions,
   revokeRefreshToken,
   revokeSession,
@@ -33,7 +35,11 @@ import {
   verifyPkce,
   verifyRefreshToken
 } from "./lib/oauth.js";
-import { renderAuthorizePage } from "./views/loginPage.js";
+import {
+  renderAuthorizePage,
+  renderRegisterPage,
+  renderVerificationSentPage
+} from "./views/loginPage.js";
 
 const app = express();
 const publicWikiDir = path.resolve(process.cwd(), "public/wiki");
@@ -150,6 +156,51 @@ app.get(
   })
 );
 
+app.get(
+  "/authorize/register",
+  asyncHandler(async (req, res) => {
+    const {
+      response_type: responseType,
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code_challenge: codeChallenge,
+      code_challenge_method: codeChallengeMethod = "S256",
+      scope = "",
+      state = ""
+    } = req.query;
+
+    assert(responseType === "code", 400, "unsupported_response_type", "Only response_type=code is supported.");
+    assert(clientId, 400, "invalid_request", "Missing client_id.");
+    assert(redirectUri, 400, "invalid_request", "Missing redirect_uri.");
+    assert(codeChallenge, 400, "invalid_request", "Missing code_challenge.");
+    assert(
+      ["S256", "plain"].includes(codeChallengeMethod),
+      400,
+      "invalid_request",
+      "Unsupported code_challenge_method."
+    );
+
+    const client = await validateClientRedirectUri(clientId, redirectUri);
+    res
+      .status(200)
+      .type("html")
+      .send(
+        renderRegisterPage({
+          clientName: client.name,
+          query: {
+            response_type: responseType,
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            code_challenge: codeChallenge,
+            code_challenge_method: codeChallengeMethod,
+            scope,
+            state
+          }
+        })
+      );
+  })
+);
+
 app.post(
   "/authorize/login",
   asyncHandler(async (req, res) => {
@@ -191,7 +242,14 @@ app.post(
 
       res.redirect(302, redirectTarget.toString());
     } catch (error) {
-      const client = clientId && redirectUri ? await validateClientRedirectUri(clientId, redirectUri) : { name: "Felixx" };
+      let client = { name: "Felixx" };
+      if (clientId && redirectUri) {
+        try {
+          client = await validateClientRedirectUri(clientId, redirectUri);
+        } catch (lookupError) {
+          client = { name: "Felixx" };
+        }
+      }
       res
         .status(error.status || 400)
         .type("html")
@@ -199,7 +257,7 @@ app.post(
           renderAuthorizePage({
             clientName: client.name,
             query: req.body,
-            error: error.description || "Sign in failed."
+            error: error.description || error.message || "Sign in failed."
           })
         );
     }
@@ -228,38 +286,42 @@ app.post(
       assert(email && password, 400, "invalid_request", "Email and password are required.");
       assert(password === confirmPassword, 400, "invalid_request", "Passwords do not match.");
       const client = await validateClientRedirectUri(clientId, redirectUri);
-      await registerUser({ email, password, name });
-      const user = await authenticateUser(email, password);
-      const code = await createAuthorizationCode({
-        client,
-        userId: user.id,
-        redirectUri,
-        codeChallenge,
-        codeChallengeMethod,
-        scope: parseScope(scope),
-        metadata: {
-          userAgent: req.headers["user-agent"] || "",
-          ip: req.ip
-        }
-      });
+      const created = await registerUser({ email, password, name });
 
-      const redirectTarget = new URL(redirectUri);
-      redirectTarget.searchParams.set("code", code);
-      if (state) {
-        redirectTarget.searchParams.set("state", state);
+      try {
+        await requestUserVerification(email);
+      } catch (verificationError) {
+        await deleteUserById(created.id);
+        throw new Error("Unable to send the verification email right now.");
       }
 
-      res.redirect(302, redirectTarget.toString());
+      res
+        .status(200)
+        .type("html")
+        .send(
+          renderVerificationSentPage({
+            clientName: client.name,
+            query: req.body,
+            email
+          })
+        );
     } catch (error) {
-      const client = clientId && redirectUri ? await validateClientRedirectUri(clientId, redirectUri) : { name: "Felixx" };
+      let client = { name: "Felixx" };
+      if (clientId && redirectUri) {
+        try {
+          client = await validateClientRedirectUri(clientId, redirectUri);
+        } catch (lookupError) {
+          client = { name: "Felixx" };
+        }
+      }
       res
         .status(error.status || 400)
         .type("html")
         .send(
-          renderAuthorizePage({
+          renderRegisterPage({
             clientName: client.name,
             query: req.body,
-            error: error.description || "Account creation failed."
+            error: error.description || error.message || "Account creation failed."
           })
         );
     }

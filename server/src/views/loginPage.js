@@ -7,16 +7,35 @@ function hiddenFields(params) {
     .join("");
 }
 
-export function renderAuthorizePage({ query, clientName, error = "" }) {
-  const fields = hiddenFields(query);
+function queryString(params) {
+  return new URLSearchParams(
+    Object.entries(params).reduce((acc, [key, value]) => {
+      if (value !== undefined && value !== null && String(value) !== "") {
+        acc[key] = String(value);
+      }
+      return acc;
+    }, {})
+  ).toString();
+}
+
+function renderPage({
+  clientName,
+  title,
+  heading,
+  description,
+  error = "",
+  body,
+  footer = ""
+}) {
   const errorHtml = error ? `<p class="error">${error}</p>` : "";
+  const footerHtml = footer ? `<p class="footer">${footer}</p>` : "";
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Felixx Sign In</title>
+    <title>${title}</title>
     <style>
       @import url(https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&family=Passero+One&display=swap);
       :root {
@@ -67,7 +86,7 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         color: var(--accent);
         text-shadow: 0 0 20px var(--glow);
       }
-      p { margin: 0 0 1.25rem; color: var(--muted); }
+      p { margin: 0 0 1rem; color: var(--muted); }
       label { display: block; margin: 1rem 0 0.4rem; font-size: 0.95rem; }
       input {
         width: 100%;
@@ -79,7 +98,11 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         background: var(--panel2);
         outline: none;
       }
-      button {
+      button,
+      a.button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border: 1px solid transparent;
         border-radius: 999px;
         padding: 0.95rem 1.2rem;
@@ -88,36 +111,17 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         color: #180d04;
         background: linear-gradient(135deg, var(--accent), var(--accent2));
         cursor: pointer;
+        text-decoration: none;
+      }
+      .secondary {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
       }
       .button-row {
         display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        padding: 0.25rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid var(--border);
-      }
-      .tab-button {
-        flex: 1;
-        margin: 0;
-        background: transparent;
-        color: var(--text);
-        border: 0;
-        padding: 0.8rem 1rem;
-      }
-      .tab-button.active {
-        background: linear-gradient(135deg, var(--accent), var(--accent2));
-        color: #180d04;
-      }
-      .panel {
-        display: none;
-      }
-      .panel.active {
-        display: block;
-      }
-      .submit-button {
-        width: 100%;
+        gap: 0.75rem;
+        flex-wrap: wrap;
         margin-top: 1.25rem;
       }
       .client {
@@ -137,53 +141,106 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         border-radius: 8px;
         border: 1px solid rgba(231, 76, 60, 0.3);
       }
+      .footer {
+        margin-top: 1rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .stack {
+        display: grid;
+        gap: 0.8rem;
+      }
     </style>
   </head>
   <body>
     <main class="card">
       <div class="client">${clientName}</div>
-      <h1>Sign in to Felixx</h1>
-      <p>${clientName} is requesting a trusted first-party sign-in. No consent screen is required.</p>
+      <h1>${heading}</h1>
+      <p>${description}</p>
       ${errorHtml}
-      <div class="button-row" role="tablist" aria-label="Authentication mode">
-        <button class="tab-button active" type="button" data-tab="signin">Sign in</button>
-        <button class="tab-button" type="button" data-tab="register">Create account</button>
-      </div>
-
-      <form class="panel active" data-panel="signin" method="post" action="/authorize/login">
-        ${fields}
-        <label for="email">Email</label>
-        <input id="signin-email" name="email" type="email" autocomplete="email" required>
-        <label for="password">Password</label>
-        <input id="signin-password" name="password" type="password" autocomplete="current-password" required>
-        <button class="submit-button" type="submit">Continue</button>
-      </form>
-
-      <form class="panel" data-panel="register" method="post" action="/authorize/register">
-        ${fields}
-        <label for="name">Name</label>
-        <input id="name" name="name" type="text" autocomplete="name" placeholder="Felixx">
-        <label for="register-email">Email</label>
-        <input id="register-email" name="email" type="email" autocomplete="email" required>
-        <label for="register-password">Password</label>
-        <input id="register-password" name="password" type="password" autocomplete="new-password" required>
-        <label for="confirm-password">Confirm password</label>
-        <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required>
-        <button class="submit-button" type="submit">Create account</button>
-      </form>
+      ${body}
+      ${footerHtml}
     </main>
-    <script>
-      const tabs = [...document.querySelectorAll(".tab-button")];
-      const panels = [...document.querySelectorAll(".panel")];
-
-      for (const tab of tabs) {
-        tab.addEventListener("click", () => {
-          const target = tab.dataset.tab;
-          for (const item of tabs) item.classList.toggle("active", item === tab);
-          for (const panel of panels) panel.classList.toggle("active", panel.dataset.panel === target);
-        });
-      }
-    </script>
   </body>
 </html>`;
+}
+
+function renderHiddenOauthFields(query) {
+  return hiddenFields(query);
+}
+
+export function renderAuthorizePage({ query, clientName, error = "" }) {
+  const registerHref = `/authorize/register?${queryString(query)}`;
+  return renderPage({
+    clientName,
+    title: "Felixx Sign In",
+    heading: "Sign in to Felixx",
+    description: `${clientName} is requesting a trusted first-party sign-in. No consent screen is required.`,
+    error,
+    body: `
+      <form method="post" action="/authorize/login">
+        ${renderHiddenOauthFields(query)}
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <div class="button-row">
+          <button type="submit">Continue</button>
+        </div>
+      </form>
+      <div class="footer">
+        New here? <a class="button secondary" href="${registerHref}">Create account</a>
+      </div>
+    `
+  });
+}
+
+export function renderRegisterPage({ query, clientName, error = "" }) {
+  return renderPage({
+    clientName,
+    title: "Felixx Create Account",
+    heading: "Create a Felixx account",
+    description: `${clientName} is requesting a trusted first-party account creation flow. A verification email will be sent after signup.`,
+    error,
+    body: `
+      <form method="post" action="/authorize/register" class="stack">
+        ${renderHiddenOauthFields(query)}
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" placeholder="Felixx">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" required>
+        <label for="confirmPassword">Confirm password</label>
+        <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required>
+        <div class="button-row">
+          <button type="submit">Create account</button>
+        </div>
+      </form>
+      <div class="footer">
+        Already have an account?
+        <a class="button secondary" href="/authorize?${queryString(query)}">Back to sign in</a>
+      </div>
+    `
+  });
+}
+
+export function renderVerificationSentPage({ query, clientName, email = "" }) {
+  const backButton = hiddenFields(query);
+  return renderPage({
+    clientName,
+    title: "Verify your email",
+    heading: "Check your email",
+    description: `We created the account for ${email || "your address"} and sent a verification email.`,
+    body: `
+      <p>Open the verification link in your inbox, then return here to sign in.</p>
+      <form method="get" action="/authorize">
+        ${backButton}
+        <div class="button-row">
+          <button type="submit">Back to sign in</button>
+        </div>
+      </form>
+    `,
+    footer: "If you do not see the email, check spam or contact the site owner to confirm email delivery is configured."
+  });
 }

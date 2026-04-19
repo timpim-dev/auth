@@ -21,12 +21,14 @@ Use this as a click-through guide in the PocketBase admin panel.
    - `email`
    - `emailVisibility`
    - `verified`
-5. Create the collection.
+5. In the auth settings, enable email verification and make sure only verified users can sign in.
+6. Create the collection.
 
 Notes:
 
 - This is the collection the server uses for email/password login.
 - If you name it something else, update `PB_USERS_COLLECTION`.
+- New users will receive a verification email after signup.
 
 ## Step 2: Create `oauth_clients`
 

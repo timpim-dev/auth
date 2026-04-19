@@ -78,6 +78,7 @@ export async function authenticateUser(email, password) {
   try {
     const auth = await pb.collection(config.usersCollection).authWithPassword(email, password);
     const user = auth.record;
+    assert(user.verified, 401, "access_denied", "Verify your email before signing in.");
     return {
       ...user,
       avatarUrl: buildAvatarUrl(user)
@@ -106,6 +107,16 @@ export async function registerUser({ email, password, name = "" }) {
       "Could not create the account. The email may already be registered."
     );
   }
+}
+
+export async function requestUserVerification(email) {
+  const pb = new PocketBase(config.pocketbaseUrl);
+  await pb.collection(config.usersCollection).requestVerification(email.trim().toLowerCase());
+}
+
+export async function deleteUserById(userId) {
+  const pb = await getAdminClient();
+  await pb.collection(config.usersCollection).delete(userId);
 }
 
 export async function getUserById(userId) {

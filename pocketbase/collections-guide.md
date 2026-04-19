@@ -49,12 +49,15 @@ Required auth settings:
 - Authentication method: email/password
 - Password login enabled: yes
 - Signup: as you prefer for your deployment
-- Verification: optional for your deployment, but the app supports the `verified` flag
+- Verification: enabled
+- Only verified users can sign in: yes
+- If you keep this off, the auth server still blocks unverified logins in code
 
 Notes:
 
 - The server uses `collection("users").authWithPassword(email, password)`.
 - If you want a different auth collection name, update `PB_USERS_COLLECTION`.
+- After registration, the server sends a verification email and waits for the user to confirm before sign-in.
 
 ## 2. `oauth_clients`
 
@@ -185,14 +188,15 @@ Notes:
 ## Setup Checklist
 
 1. Create the auth collection `users`.
-2. Create the base collections:
+2. In the auth settings, enable email/password sign-in and turn on email verification.
+3. Create the base collections:
    - `oauth_clients`
    - `oauth_auth_codes`
    - `oauth_refresh_tokens`
-3. Add the required indexes.
-4. Create at least one OAuth client record.
-5. Set the server env vars to match your PocketBase collection names.
-6. Verify the PocketBase admin account can log in from the auth server.
+4. Add the required indexes.
+5. Create at least one OAuth client record.
+6. Set the server env vars to match your PocketBase collection names.
+7. Verify the PocketBase admin account can log in from the auth server.
 
 ## Minimal OAuth Client Record
 
