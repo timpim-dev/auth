@@ -14,10 +14,18 @@ async function getAdminClient() {
   );
 
   if (!adminClient.authStore.isValid) {
-    await adminClient.admins.authWithPassword(
-      config.pocketbaseAdminEmail,
-      config.pocketbaseAdminPassword
-    );
+    try {
+      await adminClient.admins.authWithPassword(
+        config.pocketbaseAdminEmail,
+        config.pocketbaseAdminPassword
+      );
+    } catch (error) {
+      throw new HttpError(
+        500,
+        "server_configuration_error",
+        "PocketBase admin login failed. Check POCKETBASE_URL, POCKETBASE_ADMIN_EMAIL, and POCKETBASE_ADMIN_PASSWORD."
+      );
+    }
   }
 
   return adminClient;
