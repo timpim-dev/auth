@@ -20,7 +20,7 @@ Two-part identity system for Felixx:
 Copy `.env.example` to `.env` and set:
 
 - `POCKETBASE_URL=https://pocketbase.felixx.dev`
-- `POCKETBASE_ADMIN_EMAIL=fake.felix@protonmail.com`
+- `POCKETBASE_ADMIN_EMAIL=<set-in-env>`
 - PocketBase admin password
 - JWT secrets
 - first-party allowed origins

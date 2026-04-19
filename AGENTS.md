@@ -12,7 +12,7 @@ This is the Felixx identity stack:
 ## Current Setup
 
 - PocketBase lives at `https://pocketbase.felixx.dev`.
-- The PocketBase superuser email is `fake.felix@protonmail.com`.
+- The PocketBase superuser email is supplied via `POCKETBASE_ADMIN_EMAIL`.
 - The superuser password is expected from the environment as `POCKETBASE_ADMIN_PASSWORD`.
 - The auth server still uses the Felixx auth domain for its own issuer and frontend redirects.
 
