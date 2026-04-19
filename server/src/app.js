@@ -428,6 +428,21 @@ app.post(
 
 app.use(errorMiddleware);
 
+app.use((req, res) => {
+  const accept = req.headers.accept || "";
+  const wantsHtml = accept.includes("text/html") && !req.path.startsWith("/api/");
+
+  if (wantsHtml) {
+    res.status(404).sendFile(path.resolve(process.cwd(), "public/404/index.html"));
+    return;
+  }
+
+  res.status(404).json({
+    error: "not_found",
+    error_description: "The requested resource was not found."
+  });
+});
+
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   app.listen(config.port, () => {
     console.log(`Felixx auth server listening on :${config.port}`);

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Not Found</title>
+    <meta name="description" content="Felixx Identity could not find the page you requested.">
+    <style>
+      @import url(https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&family=Passero+One&display=swap);
+
+      :root {
+        color-scheme: dark;
+        --bg: #0a0a0a;
+        --panel: rgba(20, 20, 20, 0.95);
+        --border: #2d2d2d;
+        --text: #f5e8d6;
+        --muted: #998776;
+        --accent: #ff6a00;
+        --accent2: #ff9a1f;
+        --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1.25rem;
+        font-family: "Passero One", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 106, 0, 0.2), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(255, 154, 31, 0.12), transparent 26%),
+          linear-gradient(180deg, #090909, var(--bg));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 106, 0, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 106, 0, 0.04) 1px, transparent 1px);
+        background-size: 36px 36px;
+        pointer-events: none;
+      }
+
+      .card {
+        width: min(720px, 100%);
+        padding: 2rem;
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+
+      .eyebrow {
+        margin: 0 0 0.85rem;
+        font-family: "Jaro", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2.4rem, 7vw, 5rem);
+        line-height: 0.92;
+        color: var(--accent);
+      }
+
+      p {
+        margin: 0.9rem 0 0;
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: var(--muted);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.9rem 1.2rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        text-decoration: none;
+        color: #160d04;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        box-shadow: 0 0 20px rgba(255, 106, 0, 0.12);
+      }
+
+      a.secondary {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .code {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.35);
+        font: 0.95rem/1.6 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        color: #e8efff;
+        overflow: auto;
+      }
+
+      code {
+        color: #ffd9b2;
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          padding: 1.4rem;
+          border-radius: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <p class="eyebrow">404</p>
+      <h1>Page not found</h1>
+      <p>
+        The requested path does not exist on Felixx Identity.
+        If you were trying to sign in, check the auth URL or return to the wiki for deployment notes.
+      </p>
+      <div class="actions">
+        <a href="/wiki/">Open wiki</a>
+        <a class="secondary" href="/account/">Open account portal</a>
+      </div>
+      <div class="code">
+        Requested path: <code id="path"></code>
+      </div>
+    </main>
+    <script>
+      document.querySelector("#path").textContent = window.location.pathname;
+    </script>
+  </body>
+</html>
