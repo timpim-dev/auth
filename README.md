@@ -3,14 +3,14 @@
 Two-part identity system for Felixx:
 
 - `auth.felixx.dev`: OAuth 2.0 Authorization Code + PKCE server backed by PocketBase
-- `accounts.felixx.dev`: lightweight account portal SPA
+- `auth.felixx.dev/account`: lightweight account portal SPA
 - `pocketbase.felixx.dev`: PocketBase instance that stores users and OAuth records
 
 ## Project Layout
 
 - `pocketbase/collections.schema.json`: PocketBase collections to create
 - `server/`: Express auth server and account APIs
-- `apps/accounts/`: static account portal
+- `apps/accounts/`: static account portal served at `/account`
 - `apps/example-client/`: minimal OAuth client integration example
 - `apps/shared/oauth.js`: browser-side OAuth helpers used by multiple clients
 - `public/wiki/`: detailed Vercel deployment and integration guide at `/wiki`
@@ -45,8 +45,8 @@ If you skip `.env`, the server now boots with default dev values, but any route 
 ## Expected Nginx Routing
 
 - `auth.felixx.dev` -> Node service on this project
-- `accounts.felixx.dev` -> static files from `apps/accounts/`
+- `auth.felixx.dev/account` -> static files from `apps/accounts/`
 - `/wiki` -> the in-repo deployment guide page
 
-The accounts SPA calls `https://auth.felixx.dev` for OAuth and account APIs.
+The accounts SPA calls `https://auth.felixx.dev` for OAuth and account APIs, but it is served from `https://auth.felixx.dev/account`.
 # auth

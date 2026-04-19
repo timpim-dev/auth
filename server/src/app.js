@@ -37,6 +37,8 @@ import { renderAuthorizePage } from "./views/loginPage.js";
 
 const app = express();
 const publicWikiDir = path.resolve(process.cwd(), "public/wiki");
+const accountsAppDir = path.resolve(process.cwd(), "apps/accounts");
+const sharedAppDir = path.resolve(process.cwd(), "apps/shared");
 
 app.use(
   cors({
@@ -53,6 +55,11 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.get("/account", (req, res) => {
+  res.redirect(302, "/account/");
+});
+app.use("/account", express.static(accountsAppDir));
+app.use("/shared", express.static(sharedAppDir));
 app.get("/wiki", (req, res) => {
   res.redirect(302, "/wiki/");
 });

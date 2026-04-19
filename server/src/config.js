@@ -48,5 +48,5 @@ export const config = {
   authCodeTtlSeconds: Number(process.env.AUTH_CODE_TTL_SECONDS || 300),
   allowedOrigins: parseCsv(process.env.ALLOWED_ORIGINS || ""),
   issuer: process.env.AUTH_ISSUER || "https://auth.felixx.dev",
-  accountsAppUrl: process.env.ACCOUNTS_APP_URL || "https://accounts.felixx.dev"
+  accountsAppUrl: process.env.ACCOUNTS_APP_URL || "https://auth.felixx.dev/account"
 };

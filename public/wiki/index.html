@@ -440,7 +440,7 @@
                 <ul>
                   <li><code>server/src/app.js</code>: OAuth endpoints, account APIs, and the Express app export.</li>
                   <li><code>pocketbase/collections.schema.json</code>: the collections the auth layer expects.</li>
-                  <li><code>apps/accounts/</code>: first-party account portal.</li>
+                  <li><code>apps/accounts/</code>: first-party account portal served at <code>/account</code>.</li>
                   <li><code>apps/example-client/</code>: a minimal client that demonstrates a reusable OAuth integration.</li>
                   <li><code>public/wiki/index.html</code>: this guide page, served at <code>/wiki</code>.</li>
                 </ul>
@@ -542,7 +542,7 @@ export default app;</pre>
                 <tr>
                   <td><code>ALLOWED_ORIGINS</code></td>
                   <td>Comma-separated first-party origins that may call the auth API from browsers.</td>
-                  <td><code>https://accounts.felixx.dev,https://app.example.com</code></td>
+                  <td><code>https://auth.felixx.dev,https://app.example.com</code></td>
                 </tr>
                 <tr>
                   <td><code>AUTH_ISSUER</code></td>
@@ -552,7 +552,7 @@ export default app;</pre>
                 <tr>
                   <td><code>ACCOUNTS_APP_URL</code></td>
                   <td>Where account links should point.</td>
-                  <td><code>https://accounts.felixx.dev</code></td>
+                  <td><code>https://auth.felixx.dev</code></td>
                 </tr>
               </tbody>
             </table>
@@ -590,9 +590,9 @@ POCKETBASE_ADMIN_EMAIL=&lt;set-in-env&gt;
 POCKETBASE_ADMIN_PASSWORD=...secret...
 ACCESS_TOKEN_SECRET=...secret...
 REFRESH_TOKEN_SECRET=...secret...
-ALLOWED_ORIGINS=https://accounts.felixx.dev,https://new-app.example.com
+ALLOWED_ORIGINS=https://auth.felixx.dev,https://new-app.example.com
 AUTH_ISSUER=https://auth.felixx.dev
-ACCOUNTS_APP_URL=https://accounts.felixx.dev</pre>
+ACCOUNTS_APP_URL=https://auth.felixx.dev/account</pre>
             </div>
           </section>
 

@@ -1,6 +1,6 @@
 # Felixx Accounts SPA
 
-Static account portal for `accounts.felixx.dev`.
+Static account portal for `auth.felixx.dev/account`.
 
 ## Files
 
@@ -11,7 +11,7 @@ Static account portal for `accounts.felixx.dev`.
 ## Expected OAuth configuration
 
 - OAuth client id: `felixx-accounts`
-- Redirect URI: the deployed portal URL, typically `https://accounts.felixx.dev/`
+- Redirect URI: the deployed portal URL, typically `https://auth.felixx.dev/account/`
 - Auth server base URL: `https://auth.felixx.dev`
 - The page injects the client settings through `window.FELIXX_AUTH_CONFIG`
 - Shared OAuth helpers live in `apps/shared/oauth.js`
@@ -34,4 +34,4 @@ Static account portal for `accounts.felixx.dev`.
 
 - Access and refresh tokens are stored in `localStorage`.
 - PKCE verifier and OAuth state are stored in `sessionStorage`.
-- The SPA assumes CORS is enabled from `accounts.felixx.dev` to `auth.felixx.dev`.
+- The SPA runs on the same origin as the auth server when served from `auth.felixx.dev/account`.
