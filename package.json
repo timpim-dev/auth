@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch server/src/app.js",
     "start": "node server/src/app.js",
-    "check": "node --check server/src/app.js && node --check server/src/lib/oauth.js && node --check apps/accounts/app.js && node --check apps/example-client/app.js && node --check apps/shared/oauth.js"
+    "check": "node --check server/src/app.js && node --check server/src/views/loginPage.js && node --check server/src/lib/oauth.js && node --check apps/accounts/app.js && node --check apps/example-client/app.js && node --check apps/shared/oauth.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

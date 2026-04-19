@@ -18,7 +18,6 @@ These are the collection-name env vars used by the server:
 - `PB_CLIENTS_COLLECTION` = `oauth_clients`
 - `PB_AUTH_CODES_COLLECTION` = `oauth_auth_codes`
 - `PB_REFRESH_TOKENS_COLLECTION` = `oauth_refresh_tokens`
-- `PB_USAGE_COLLECTION` = `ai_usage`
 
 If you rename any collection in PocketBase, update the matching env var in the deployment.
 
@@ -183,40 +182,6 @@ Notes:
 - Token rotation marks the old record as revoked and stores the next `jti`.
 - `session_id` is what the account portal uses to show active sessions.
 
-## 5. `ai_usage`
-
-Type:
-
-- `Base` collection
-
-Purpose:
-
-- Stores usage records shown in the accounts portal.
-
-Fields:
-
-| Field | PocketBase UI type | Required | Notes |
-| --- | --- | --- | --- |
-| `user_id` | Plain text | Yes | PocketBase user record id |
-| `app_name` | Plain text | Yes | Displayed in the account portal |
-| `model` | Plain text | No | Optional model name |
-| `request_count` | Number | Yes | Min `0`, default `0` |
-| `tokens_used` | Number | Yes | Min `0`, default `0` |
-| `period_start` | DateTime | Yes | Period start timestamp |
-| `period_end` | DateTime | Yes | Period end timestamp |
-| `metadata` | JSON | No | Optional extra usage info |
-
-Indexes:
-
-```sql
-CREATE INDEX idx_ai_usage_user_period ON ai_usage (user_id, period_start, period_end)
-```
-
-Notes:
-
-- This collection is read by the `/api/account/usage` endpoint.
-- Records are grouped and summed in the accounts portal.
-
 ## Setup Checklist
 
 1. Create the auth collection `users`.
@@ -224,7 +189,6 @@ Notes:
    - `oauth_clients`
    - `oauth_auth_codes`
    - `oauth_refresh_tokens`
-   - `ai_usage`
 3. Add the required indexes.
 4. Create at least one OAuth client record.
 5. Set the server env vars to match your PocketBase collection names.

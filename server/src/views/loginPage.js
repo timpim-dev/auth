@@ -54,7 +54,7 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         z-index: -1;
       }
       .card {
-        width: min(100%, 26rem);
+        width: min(100%, 31rem);
         padding: 2rem;
         border-radius: 8px;
         background: var(--panel);
@@ -80,8 +80,6 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         outline: none;
       }
       button {
-        width: 100%;
-        margin-top: 1.25rem;
         border: 1px solid transparent;
         border-radius: 999px;
         padding: 0.95rem 1.2rem;
@@ -90,6 +88,37 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         color: #180d04;
         background: linear-gradient(135deg, var(--accent), var(--accent2));
         cursor: pointer;
+      }
+      .button-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0.25rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+      }
+      .tab-button {
+        flex: 1;
+        margin: 0;
+        background: transparent;
+        color: var(--text);
+        border: 0;
+        padding: 0.8rem 1rem;
+      }
+      .tab-button.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #180d04;
+      }
+      .panel {
+        display: none;
+      }
+      .panel.active {
+        display: block;
+      }
+      .submit-button {
+        width: 100%;
+        margin-top: 1.25rem;
       }
       .client {
         display: inline-block;
@@ -116,15 +145,45 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
       <h1>Sign in to Felixx</h1>
       <p>${clientName} is requesting a trusted first-party sign-in. No consent screen is required.</p>
       ${errorHtml}
-      <form method="post" action="/authorize/login">
+      <div class="button-row" role="tablist" aria-label="Authentication mode">
+        <button class="tab-button active" type="button" data-tab="signin">Sign in</button>
+        <button class="tab-button" type="button" data-tab="register">Create account</button>
+      </div>
+
+      <form class="panel active" data-panel="signin" method="post" action="/authorize/login">
         ${fields}
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" autocomplete="email" required>
+        <input id="signin-email" name="email" type="email" autocomplete="email" required>
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required>
-        <button type="submit">Continue</button>
+        <input id="signin-password" name="password" type="password" autocomplete="current-password" required>
+        <button class="submit-button" type="submit">Continue</button>
+      </form>
+
+      <form class="panel" data-panel="register" method="post" action="/authorize/register">
+        ${fields}
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" placeholder="Felixx">
+        <label for="register-email">Email</label>
+        <input id="register-email" name="email" type="email" autocomplete="email" required>
+        <label for="register-password">Password</label>
+        <input id="register-password" name="password" type="password" autocomplete="new-password" required>
+        <label for="confirm-password">Confirm password</label>
+        <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password" required>
+        <button class="submit-button" type="submit">Create account</button>
       </form>
     </main>
+    <script>
+      const tabs = [...document.querySelectorAll(".tab-button")];
+      const panels = [...document.querySelectorAll(".panel")];
+
+      for (const tab of tabs) {
+        tab.addEventListener("click", () => {
+          const target = tab.dataset.tab;
+          for (const item of tabs) item.classList.toggle("active", item === tab);
+          for (const panel of panels) panel.classList.toggle("active", panel.dataset.panel === target);
+        });
+      }
+    </script>
   </body>
 </html>`;
 }

@@ -12,8 +12,8 @@ import {
   findRefreshTokenRecord,
   getUserById,
   listConnectedApps,
-  listUsageForUser,
   listUserClientSessions,
+  registerUser,
   revokeAppSessions,
   revokeRefreshToken,
   revokeSession,
@@ -200,6 +200,66 @@ app.post(
             clientName: client.name,
             query: req.body,
             error: error.description || "Sign in failed."
+          })
+        );
+    }
+  })
+);
+
+app.post(
+  "/authorize/register",
+  asyncHandler(async (req, res) => {
+    const {
+      response_type: responseType,
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      code_challenge: codeChallenge,
+      code_challenge_method: codeChallengeMethod = "S256",
+      scope = "",
+      state = "",
+      name = "",
+      email,
+      password,
+      confirmPassword
+    } = req.body;
+
+    try {
+      assert(responseType === "code", 400, "unsupported_response_type", "Only response_type=code is supported.");
+      assert(email && password, 400, "invalid_request", "Email and password are required.");
+      assert(password === confirmPassword, 400, "invalid_request", "Passwords do not match.");
+      const client = await validateClientRedirectUri(clientId, redirectUri);
+      await registerUser({ email, password, name });
+      const user = await authenticateUser(email, password);
+      const code = await createAuthorizationCode({
+        client,
+        userId: user.id,
+        redirectUri,
+        codeChallenge,
+        codeChallengeMethod,
+        scope: parseScope(scope),
+        metadata: {
+          userAgent: req.headers["user-agent"] || "",
+          ip: req.ip
+        }
+      });
+
+      const redirectTarget = new URL(redirectUri);
+      redirectTarget.searchParams.set("code", code);
+      if (state) {
+        redirectTarget.searchParams.set("state", state);
+      }
+
+      res.redirect(302, redirectTarget.toString());
+    } catch (error) {
+      const client = clientId && redirectUri ? await validateClientRedirectUri(clientId, redirectUri) : { name: "Felixx" };
+      res
+        .status(error.status || 400)
+        .type("html")
+        .send(
+          renderAuthorizePage({
+            clientName: client.name,
+            query: req.body,
+            error: error.description || "Account creation failed."
           })
         );
     }
@@ -399,15 +459,6 @@ app.post(
   asyncHandler(async (req, res) => {
     const revoked = await revokeAppSessions(req.currentUser.id, req.params.clientId);
     res.json({ revoked });
-  })
-);
-
-app.get(
-  "/api/account/usage",
-  requireAccessUser,
-  asyncHandler(async (req, res) => {
-    const usage = await listUsageForUser(req.currentUser.id);
-    res.json(usage);
   })
 );
 

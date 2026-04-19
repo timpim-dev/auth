@@ -61,23 +61,6 @@
         "CREATE UNIQUE INDEX idx_oauth_refresh_tokens_token_hash ON oauth_refresh_tokens (token_hash)",
         "CREATE UNIQUE INDEX idx_oauth_refresh_tokens_jti ON oauth_refresh_tokens (jti)"
       ]
-    },
-    {
-      "name": "ai_usage",
-      "type": "base",
-      "fields": [
-        { "name": "user_id", "type": "text", "required": true },
-        { "name": "app_name", "type": "text", "required": true },
-        { "name": "model", "type": "text" },
-        { "name": "request_count", "type": "number", "required": true, "min": 0, "default": 0 },
-        { "name": "tokens_used", "type": "number", "required": true, "min": 0, "default": 0 },
-        { "name": "period_start", "type": "date", "required": true },
-        { "name": "period_end", "type": "date", "required": true },
-        { "name": "metadata", "type": "json" }
-      ],
-      "indexes": [
-        "CREATE INDEX idx_ai_usage_user_period ON ai_usage (user_id, period_start, period_end)"
-      ]
     }
   ]
 }

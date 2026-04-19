@@ -14,6 +14,7 @@ Two-part identity system for Felixx:
 - `apps/example-client/`: minimal OAuth client integration example
 - `apps/shared/oauth.js`: browser-side OAuth helpers used by multiple clients
 - `public/wiki/`: detailed Vercel deployment and integration guide at `/wiki`
+- `public/wiki/integration/`: third-party developer API guide at `/wiki/integration/`
 
 ## Environment
 
@@ -47,6 +48,7 @@ If you skip `.env`, the server now boots with default dev values, but any route 
 - `auth.felixx.dev` -> Node service on this project
 - `auth.felixx.dev/account` -> static files from `apps/accounts/`
 - `/wiki` -> the in-repo deployment guide page
+- `/wiki/integration` -> the third-party API integration guide
 
 The accounts SPA calls `https://auth.felixx.dev` for OAuth and account APIs, but it is served from `https://auth.felixx.dev/account`.
 # auth

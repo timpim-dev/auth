@@ -156,45 +156,7 @@ Notes:
    - `CREATE UNIQUE INDEX idx_oauth_refresh_tokens_jti ON oauth_refresh_tokens (jti)`
 6. Create the collection.
 
-## Step 5: Create `ai_usage`
-
-1. Click **New collection**.
-2. Set **Name** to `ai_usage`.
-3. Set **Type** to `Base`.
-4. Add these fields:
-   - `user_id`  
-     - Type: `Plain text`
-     - Required: yes
-   - `app_name`  
-     - Type: `Plain text`
-     - Required: yes
-   - `model`  
-     - Type: `Plain text`
-     - Required: no
-   - `request_count`  
-     - Type: `Number`
-     - Required: yes
-     - Min: `0`
-     - Default: `0`
-   - `tokens_used`  
-     - Type: `Number`
-     - Required: yes
-     - Min: `0`
-     - Default: `0`
-   - `period_start`  
-     - Type: `DateTime`
-     - Required: yes
-   - `period_end`  
-     - Type: `DateTime`
-     - Required: yes
-   - `metadata`  
-     - Type: `JSON`
-     - Required: no
-5. Add this index:
-   - `CREATE INDEX idx_ai_usage_user_period ON ai_usage (user_id, period_start, period_end)`
-6. Create the collection.
-
-## Step 6: Add the First OAuth Client
+## Step 5: Add the First OAuth Client
 
 1. Open `oauth_clients`.
 2. Click **New record**.
@@ -205,7 +167,7 @@ Notes:
    - `is_active` = `true`
 4. Save the record.
 
-## Step 7: Verify Environment Variables
+## Step 6: Verify Environment Variables
 
 Make sure the auth server environment matches the collection names:
 
@@ -213,7 +175,6 @@ Make sure the auth server environment matches the collection names:
 - `PB_CLIENTS_COLLECTION=oauth_clients`
 - `PB_AUTH_CODES_COLLECTION=oauth_auth_codes`
 - `PB_REFRESH_TOKENS_COLLECTION=oauth_refresh_tokens`
-- `PB_USAGE_COLLECTION=ai_usage`
 
 ## Quick Success Checklist
 
@@ -221,8 +182,6 @@ Make sure the auth server environment matches the collection names:
 - `oauth_clients` exists
 - `oauth_auth_codes` exists
 - `oauth_refresh_tokens` exists
-- `ai_usage` exists
 - `felixx-accounts` client record exists
 - redirect URI matches exactly
 - auth server env vars match the collection names
-

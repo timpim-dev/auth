@@ -4,7 +4,7 @@ Static account portal for `auth.felixx.dev/account`.
 
 ## Files
 
-- `index.html`: single-page shell and sections for profile, password, apps, usage, and sessions
+- `index.html`: single-page shell and sections for profile, password, apps, and sessions
 - `styles.css`: responsive visual system
 - `app.js`: OAuth PKCE login flow, token storage, API client, and view logic
 
@@ -26,7 +26,6 @@ Static account portal for `auth.felixx.dev/account`.
 - `POST /api/account/password`
 - `GET /api/account/apps`
 - `POST /api/account/apps/:id/revoke`
-- `GET /api/account/usage`
 - `GET /api/account/sessions`
 - `POST /api/account/sessions/:id/logout`
 

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Felixx Accounts</title>
-    <meta name="description" content="Manage your Felixx profile, apps, usage, and sessions.">
+    <meta name="description" content="Manage your Felixx profile, apps, and sessions.">
     <link rel="stylesheet" href="./styles.css">
     <script>
       window.FELIXX_AUTH_CONFIG = {
@@ -23,7 +23,7 @@
       <p class="eyebrow">Felixx Identity</p>
       <h1>Accounts</h1>
       <p class="hero-copy">
-        One place for profile changes, app access, AI usage, and live sessions across the Felixx platform.
+        One place for profile changes, app access, and live sessions across the Felixx platform.
       </p>
       <div class="hero-grid">
         <article>
@@ -67,7 +67,6 @@
         <button class="tab active" data-tab="profile" type="button">Profile</button>
         <button class="tab" data-tab="password" type="button">Password</button>
         <button class="tab" data-tab="apps" type="button">Apps</button>
-        <button class="tab" data-tab="usage" type="button">AI Usage</button>
         <button class="tab" data-tab="sessions" type="button">Sessions</button>
       </nav>
 
@@ -136,31 +135,6 @@
           </div>
           <div class="list-shell" id="apps-list"></div>
           <p class="status-text" id="apps-status">Apps not loaded.</p>
-        </article>
-
-        <article class="panel" data-panel="usage">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow">AI Usage</p>
-              <h3>Consumption across Felixx AI</h3>
-            </div>
-          </div>
-          <div class="metric-row">
-            <article class="metric-card">
-              <span>Total requests</span>
-              <strong id="requests-total">0</strong>
-            </article>
-            <article class="metric-card">
-              <span>Total tokens</span>
-              <strong id="tokens-total">0</strong>
-            </article>
-            <article class="metric-card">
-              <span>Last 30 days</span>
-              <strong id="requests-month">0</strong>
-            </article>
-          </div>
-          <div class="list-shell" id="usage-list"></div>
-          <p class="status-text" id="usage-status">Usage not loaded.</p>
         </article>
 
         <article class="panel" data-panel="sessions">

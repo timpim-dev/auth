@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Felixx Identity API Integration</title>
+    <meta
+      name="description"
+      content="Third-party integration guide for Felixx Identity: OAuth 2.0, PKCE, token exchange, and account API usage."
+    >
+    <style>
+      @import url(https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&family=Passero+One&display=swap);
+
+      :root {
+        color-scheme: dark;
+        --bg: #090909;
+        --bg2: #111111;
+        --panel: rgba(20, 20, 20, 0.94);
+        --panel2: rgba(28, 28, 28, 0.94);
+        --border: #2b2b2b;
+        --text: #f6ead6;
+        --muted: #9a8874;
+        --accent: #ff6a00;
+        --accent2: #ff9f1a;
+        --cyan: #55d6ff;
+        --success: #8ad66a;
+        --shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+        --r: 18px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Passero One", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 106, 0, 0.18), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(85, 214, 255, 0.12), transparent 24%),
+          linear-gradient(180deg, var(--bg), var(--bg2));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 106, 0, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 106, 0, 0.045) 1px, transparent 1px);
+        background-size: 36px 36px;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      code {
+        padding: 0.14rem 0.36rem;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        color: #ffd9b2;
+      }
+
+      .layout {
+        width: min(1480px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 1rem 0 3rem;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 1rem;
+      }
+
+      .sidebar,
+      .article {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        box-shadow: var(--shadow);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 1rem;
+        align-self: start;
+        padding: 1.2rem;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        line-height: 0.95;
+        color: var(--accent);
+        text-shadow: 0 0 18px rgba(255, 106, 0, 0.15);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.42rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 106, 0, 0.08);
+        color: var(--accent2);
+        font-family: "Jaro", sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .sidebar nav {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .sidebar nav a {
+        padding: 0.7rem 0.8rem;
+        border-radius: 12px;
+        color: var(--text);
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .sidebar nav a:hover {
+        border-color: var(--border);
+        background: rgba(255, 106, 0, 0.06);
+      }
+
+      .sidebar .note {
+        margin-top: 1rem;
+        padding: 0.9rem;
+        border-radius: 14px;
+        background: var(--panel2);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .article {
+        overflow: hidden;
+      }
+
+      .hero {
+        padding: 2rem 2rem 1.6rem;
+        border-bottom: 1px solid var(--border);
+        background:
+          linear-gradient(135deg, rgba(255, 106, 0, 0.09), transparent 36%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent);
+      }
+
+      .eyebrow {
+        margin: 0 0 0.8rem;
+        font-family: "Jaro", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4.3rem);
+        line-height: 0.95;
+        color: var(--accent);
+      }
+
+      .hero p {
+        max-width: 72ch;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.65;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+      }
+
+      .stat,
+      .card,
+      .callout,
+      .codeblock {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--panel2);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.01) inset;
+      }
+
+      .stat {
+        padding: 1rem;
+      }
+
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-family: "Jaro", sans-serif;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 0.45rem;
+        font-size: 1.06rem;
+      }
+
+      .content {
+        padding: 1rem 2rem 2.2rem;
+      }
+
+      section {
+        padding: 1rem 0 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      section:last-child {
+        border-bottom: 0;
+      }
+
+      h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.6rem;
+        color: var(--accent2);
+      }
+
+      h4 {
+        margin: 0 0 0.45rem;
+        font-size: 1.12rem;
+      }
+
+      p, li {
+        color: var(--text);
+        line-height: 1.72;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+
+      .card,
+      .callout {
+        padding: 1rem 1rem 1.05rem;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+      }
+
+      .callout.good {
+        border-left-color: var(--success);
+      }
+
+      .codeblock {
+        margin: 0.9rem 0;
+        overflow: auto;
+        padding: 1rem;
+        background: #0d0d0d;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #edf4ff;
+        font: 0.92rem/1.55 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--panel2);
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.85rem 0.95rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--accent2);
+        background: rgba(255, 106, 0, 0.05);
+      }
+
+      ul,
+      ol {
+        padding-left: 1.2rem;
+        margin: 0.5rem 0 0;
+      }
+
+      .footer {
+        padding-top: 1rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 1100px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: relative;
+          top: 0;
+        }
+
+        .hero-grid,
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .layout {
+          width: min(100%, calc(100% - 1rem));
+        }
+
+        .hero,
+        .content,
+        .sidebar {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div>
+            <p class="eyebrow">Felixx Identity</p>
+            <h1>Integrate</h1>
+          </div>
+          <div class="pill">API guide</div>
+        </div>
+        <nav aria-label="Integration sections">
+          <a href="#overview">Overview</a>
+          <a href="#flow">OAuth Flow</a>
+          <a href="#endpoints">Endpoints</a>
+          <a href="#browser">Browser Apps</a>
+          <a href="#server">Server Apps</a>
+          <a href="#example">Example Snippets</a>
+          <a href="#security">Security Notes</a>
+        </nav>
+        <div class="note">
+          This page is written for third-party developers. It does not assume you use this repo, only that you want to connect a website to Felixx Identity.
+        </div>
+      </aside>
+
+      <main class="article">
+        <header class="hero" id="overview">
+          <p class="eyebrow">Third-party integration</p>
+          <h2>How to connect any website to Felixx Identity</h2>
+          <p>
+            Use this guide if you want your own website or app to log users in through Felixx Identity.
+            The supported flow is OAuth 2.0 Authorization Code with PKCE.
+            That means the browser starts the sign-in, receives a short-lived authorization code, and exchanges it for tokens.
+          </p>
+          <div class="hero-grid">
+            <div class="stat">
+              <span>Auth server</span>
+              <strong><code>https://auth.felixx.dev</code></strong>
+            </div>
+            <div class="stat">
+              <span>Required flow</span>
+              <strong>Authorization Code + PKCE</strong>
+            </div>
+            <div class="stat">
+              <span>Client setup</span>
+              <strong>One OAuth client record per website</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <section id="flow">
+            <h3>OAuth Flow</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>1. Register your app</h4>
+                <p>
+                  Create an OAuth client record in PocketBase with a unique `client_id`, your app name, and the exact redirect URI(s) you will use.
+                </p>
+              </div>
+              <div class="card">
+                <h4>2. Send the user to `/authorize`</h4>
+                <p>
+                  Build an authorization URL with `response_type=code`, `client_id`, `redirect_uri`, `state`, `code_challenge`, and `code_challenge_method=S256`.
+                </p>
+              </div>
+              <div class="card">
+                <h4>3. Validate the callback</h4>
+                <p>
+                  When the browser returns with `code` and `state`, compare the state to what you saved locally before continuing.
+                </p>
+              </div>
+              <div class="card">
+                <h4>4. Exchange the code</h4>
+                <p>
+                  Send the code to `/token` with the PKCE verifier. The server returns access and refresh tokens if everything matches.
+                </p>
+              </div>
+              <div class="card">
+                <h4>5. Use the access token</h4>
+                <p>
+                  Send `Authorization: Bearer &lt;token&gt;` to protected account endpoints or to `/userinfo` if you only need identity claims.
+                </p>
+              </div>
+              <div class="card">
+                <h4>6. Rotate or revoke</h4>
+                <p>
+                  Refresh tokens are rotated by calling `/token` with `grant_type=refresh_token`, and can be revoked with `/revoke`.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section id="endpoints">
+            <h3>Endpoints</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Path</th>
+                  <th>Use</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/authorize</code></td>
+                  <td>Start the sign-in flow and render the Felixx login screen.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/authorize/login</code></td>
+                  <td>Used by the hosted login page after the user enters credentials.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/token</code></td>
+                  <td>Exchange an auth code or refresh a token.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/revoke</code></td>
+                  <td>Invalidate a refresh token.</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/userinfo</code></td>
+                  <td>Fetch the signed-in user profile.</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/api/account/profile</code></td>
+                  <td>Read the current user profile.</td>
+                </tr>
+                <tr>
+                  <td><code>PATCH</code></td>
+                  <td><code>/api/account/profile</code></td>
+                  <td>Update name, email, or avatar URL.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/api/account/password</code></td>
+                  <td>Change the account password.</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/api/account/apps</code></td>
+                  <td>List connected apps and sessions.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/api/account/apps/:clientId/revoke</code></td>
+                  <td>Revoke all sessions for a connected app.</td>
+                </tr>
+                <tr>
+                  <td><code>GET</code></td>
+                  <td><code>/api/account/sessions</code></td>
+                  <td>List active sessions for the current user.</td>
+                </tr>
+                <tr>
+                  <td><code>POST</code></td>
+                  <td><code>/api/account/sessions/:sessionId/logout</code></td>
+                  <td>Log out a specific session.</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section id="browser">
+            <h3>Browser Apps</h3>
+            <div class="card">
+              <h4>Recommended pattern</h4>
+              <ol>
+                <li>Store the PKCE verifier and state in <code>sessionStorage</code>.</li>
+                <li>Store the token response in <code>localStorage</code> only if you accept browser-side token persistence.</li>
+                <li>Use the access token for API calls.</li>
+                <li>Refresh when a request returns `401` or the access token expires.</li>
+              </ol>
+            </div>
+            <div class="callout good">
+              Keep the redirect URI exact. The auth server checks it against the registered OAuth client record.
+            </div>
+          </section>
+
+          <section id="server">
+            <h3>Server Apps</h3>
+            <div class="card">
+              <h4>Recommended pattern for backend-rendered sites</h4>
+              <p>
+                If your site has a server, you can still use the same OAuth flow.
+                Let the browser redirect to Felixx Identity, then handle the callback on your backend or exchange the code on the server after verifying state and PKCE.
+              </p>
+              <p>
+                This is useful when you want to keep refresh tokens out of browser storage.
+              </p>
+            </div>
+          </section>
+
+          <section id="example">
+            <h3>Example Snippets</h3>
+            <div class="codeblock">
+<pre>const authBaseUrl = "https://auth.felixx.dev";
+const clientId = "your-client-id";
+const redirectUri = "https://your-site.example/callback";
+
+// 1. Generate PKCE verifier/challenge
+// 2. Save verifier + state locally
+// 3. Send the browser to /authorize
+// 4. Exchange the returned code at /token</pre>
+            </div>
+            <div class="codeblock">
+<pre>fetch(`${authBaseUrl}/userinfo`, {
+  headers: {
+    Authorization: `Bearer ${accessToken}`
+  }
+});</pre>
+            </div>
+            <div class="codeblock">
+<pre>await fetch(`${authBaseUrl}/revoke`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ token: refreshToken })
+});</pre>
+            </div>
+          </section>
+
+          <section id="security">
+            <h3>Security Notes</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Do</h4>
+                <ul>
+                  <li>Use PKCE for every public client.</li>
+                  <li>Use HTTPS redirect URIs only.</li>
+                  <li>Register each redirect URI exactly.</li>
+                  <li>Store short-lived state locally and clear it after callback.</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>Don’t</h4>
+                <ul>
+                  <li>Don’t skip the state check.</li>
+                  <li>Don’t use the auth server as a generic password API.</li>
+                  <li>Don’t share a single OAuth client across unrelated websites.</li>
+                  <li>Don’t assume a refresh token is permanent.</li>
+                </ul>
+              </div>
+            </div>
+            <div class="footer">
+              If you’re integrating Felixx Identity into your own site, start by registering a client, then copy the browser flow from this page into your app.
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

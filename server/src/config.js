@@ -40,7 +40,6 @@ export const config = {
   authCodesCollection: process.env.PB_AUTH_CODES_COLLECTION || "oauth_auth_codes",
   refreshTokensCollection:
     process.env.PB_REFRESH_TOKENS_COLLECTION || "oauth_refresh_tokens",
-  usageCollection: process.env.PB_USAGE_COLLECTION || "ai_usage",
   accessTokenSecret: envOrGeneratedSecret("ACCESS_TOKEN_SECRET", "ACCESS_TOKEN_SECRET"),
   refreshTokenSecret: envOrGeneratedSecret("REFRESH_TOKEN_SECRET", "REFRESH_TOKEN_SECRET"),
   accessTokenTtlSeconds: Number(process.env.ACCESS_TOKEN_TTL_SECONDS || 900),

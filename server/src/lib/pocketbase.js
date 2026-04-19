@@ -87,6 +87,27 @@ export async function authenticateUser(email, password) {
   }
 }
 
+export async function registerUser({ email, password, name = "" }) {
+  const pb = await getAdminClient();
+  const username = email.trim().toLowerCase();
+
+  try {
+    return await pb.collection(config.usersCollection).create({
+      email: email.trim().toLowerCase(),
+      username,
+      name: name.trim(),
+      password,
+      passwordConfirm: password
+    });
+  } catch (error) {
+    throw new HttpError(
+      400,
+      "registration_failed",
+      "Could not create the account. The email may already be registered."
+    );
+  }
+}
+
 export async function getUserById(userId) {
   const pb = await getAdminClient();
   const record = await pb.collection(config.usersCollection).getOne(userId);
@@ -336,37 +357,6 @@ export async function changeUserPassword(userId, email, currentPassword, nextPas
     password: nextPassword,
     passwordConfirm: nextPassword
   });
-}
-
-export async function listUsageForUser(userId) {
-  const pb = await getAdminClient();
-  const records = await pb.collection(config.usageCollection).getFullList({
-    filter: `user_id = "${userId}"`,
-    sort: "-period_end"
-  });
-
-  const totals = records.reduce(
-    (accumulator, record) => {
-      accumulator.requests += Number(record.request_count || 0);
-      accumulator.tokens += Number(record.tokens_used || 0);
-      return accumulator;
-    },
-    { requests: 0, tokens: 0 }
-  );
-
-  return {
-    totals,
-    records: records.map((record) => ({
-      id: record.id,
-      appName: record.app_name,
-      model: record.model || "",
-      requestCount: Number(record.request_count || 0),
-      tokensUsed: Number(record.tokens_used || 0),
-      periodStart: record.period_start,
-      periodEnd: record.period_end,
-      metadata: record.metadata || null
-    }))
-  };
 }
 
 export async function ensureRefreshTokenIsActive(record, expectedClientId) {

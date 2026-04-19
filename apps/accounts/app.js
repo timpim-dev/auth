@@ -26,18 +26,13 @@ const elements = {
   profileStatus: document.querySelector("#profile-status"),
   passwordStatus: document.querySelector("#password-status"),
   appsStatus: document.querySelector("#apps-status"),
-  usageStatus: document.querySelector("#usage-status"),
   sessionsStatus: document.querySelector("#sessions-status"),
   profileName: document.querySelector("#profile-name"),
   profileEmail: document.querySelector("#profile-email"),
   profileAvatar: document.querySelector("#profile-avatar"),
   avatarPreview: document.querySelector("#avatar-preview"),
   appsList: document.querySelector("#apps-list"),
-  usageList: document.querySelector("#usage-list"),
   sessionsList: document.querySelector("#sessions-list"),
-  requestsTotal: document.querySelector("#requests-total"),
-  tokensTotal: document.querySelector("#tokens-total"),
-  requestsMonth: document.querySelector("#requests-month"),
   tabs: [...document.querySelectorAll(".tab")],
   panels: [...document.querySelectorAll(".panel")],
 };
@@ -173,11 +168,7 @@ async function refreshAppState() {
     state.profile = profile;
     renderAuthState(profile);
     fillProfile(profile);
-    await Promise.all([
-      loadConnectedApps(),
-      loadUsage(),
-      loadSessions(),
-    ]);
+    await Promise.all([loadConnectedApps(), loadSessions()]);
   } catch (error) {
     if (await tryRefreshTokens(error)) {
       return refreshAppState();
@@ -193,15 +184,10 @@ function renderSignedOutState() {
   elements.logoutButton.classList.add("hidden");
   elements.profileForm.reset();
   elements.appsList.innerHTML = "";
-  elements.usageList.innerHTML = "";
   elements.sessionsList.innerHTML = "";
-  elements.requestsTotal.textContent = "0";
-  elements.tokensTotal.textContent = "0";
-  elements.requestsMonth.textContent = "0";
   resetAvatar();
   setStatus(elements.profileStatus, "Sign in to load profile.", "info");
   setStatus(elements.appsStatus, "Sign in to load apps.", "info");
-  setStatus(elements.usageStatus, "Sign in to load usage.", "info");
   setStatus(elements.sessionsStatus, "Sign in to load sessions.", "info");
 }
 
@@ -284,32 +270,6 @@ async function loadConnectedApps() {
   }
 
   setStatus(elements.appsStatus, `${items.length} app${items.length === 1 ? "" : "s"} connected.`, "success");
-}
-
-async function loadUsage() {
-  setStatus(elements.usageStatus, "Loading usage...", "info");
-  const response = await api("/api/account/usage");
-  const totals = response.totals || {};
-  const items = response.records || [];
-
-  elements.requestsTotal.textContent = formatNumber(totals.requests || 0);
-  elements.tokensTotal.textContent = formatNumber(totals.tokens || 0);
-  elements.requestsMonth.textContent = formatNumber(
-    items
-      .filter((item) => Date.now() - new Date(item.periodEnd).getTime() <= 30 * 24 * 60 * 60 * 1000)
-      .reduce((sum, item) => sum + Number(item.requestCount || 0), 0)
-  );
-  elements.usageList.innerHTML = items.length ? "" : renderEmpty("No AI usage yet.");
-
-  for (const item of items) {
-    elements.usageList.appendChild(renderListItem({
-      title: item.appName || item.model || "AI usage",
-      meta: `${formatDate(item.periodStart)} to ${formatDate(item.periodEnd)}`,
-      body: `${formatNumber(item.requestCount || 0)} request${item.requestCount === 1 ? "" : "s"} • ${formatNumber(item.tokensUsed || 0)} tokens${item.model ? ` • ${item.model}` : ""}`,
-    }));
-  }
-
-  setStatus(elements.usageStatus, "Usage loaded.", "success");
 }
 
 async function loadSessions() {
