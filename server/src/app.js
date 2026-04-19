@@ -24,7 +24,7 @@ import {
   validateClientRedirectUri
 } from "./lib/pocketbase.js";
 import { config } from "./config.js";
-import { assert } from "./lib/errors.js";
+import { HttpError, assert } from "./lib/errors.js";
 import { asyncHandler, errorMiddleware, oauthErrorResponse } from "./lib/http.js";
 import {
   parseScope,
@@ -291,12 +291,17 @@ app.post(
       try {
         await requestUserVerification(email);
       } catch (verificationError) {
+        console.error("[register] verification email request failed", verificationError);
         try {
           await deleteUserById(created.id);
         } catch (cleanupError) {
-          console.error(cleanupError);
+          console.error("[register] cleanup after verification failure failed", cleanupError);
         }
-        throw new Error("Unable to send the verification email right now.");
+        throw new HttpError(
+          502,
+          "email_delivery_failed",
+          "Unable to send the verification email right now."
+        );
       }
 
       res
@@ -310,6 +315,9 @@ app.post(
           })
         );
     } catch (error) {
+      if (!(error instanceof HttpError)) {
+        console.error("[register] unexpected error", error);
+      }
       let client = { name: "Felixx" };
       if (clientId && redirectUri) {
         try {

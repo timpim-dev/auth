@@ -5,7 +5,25 @@ import { buildAvatarUrl, isoDateFromNow, randomOpaqueToken, sha256 } from "./oau
 
 const adminClient = new PocketBase(config.pocketbaseUrl);
 
+function logPocketBaseError(context, error, details = {}) {
+  console.error(context, {
+    message: error?.message || String(error),
+    status: error?.status || error?.response?.status || null,
+    data: error?.response?.data || error?.data || null,
+    stack: error?.stack || null,
+    ...details
+  });
+}
+
 async function getAdminClient() {
+  if (!config.pocketbaseAdminEmail || !config.pocketbaseAdminPassword) {
+    console.error("PocketBase admin credentials are missing", {
+      pocketbaseUrl: config.pocketbaseUrl,
+      hasAdminEmail: Boolean(config.pocketbaseAdminEmail),
+      hasAdminPassword: Boolean(config.pocketbaseAdminPassword)
+    });
+  }
+
   assert(
     config.pocketbaseAdminEmail && config.pocketbaseAdminPassword,
     500,
@@ -20,6 +38,10 @@ async function getAdminClient() {
         config.pocketbaseAdminPassword
       );
     } catch (error) {
+      logPocketBaseError("PocketBase admin login failed", error, {
+        pocketbaseUrl: config.pocketbaseUrl,
+        adminEmail: config.pocketbaseAdminEmail
+      });
       throw new HttpError(
         500,
         "server_configuration_error",
@@ -57,7 +79,16 @@ export async function findClientByClientId(clientId) {
       .getFirstListItem(`client_id = "${clientId}" && is_active = true`);
     return normalizeClient(record);
   } catch (error) {
-    throw new HttpError(400, "invalid_client", "Unknown or inactive client.");
+    const status = error?.status || error?.response?.status;
+    if (status === 404) {
+      throw new HttpError(400, "invalid_client", "Unknown or inactive client.");
+    }
+
+    logPocketBaseError("PocketBase client lookup failed", error, {
+      clientId,
+      collection: config.clientsCollection
+    });
+    throw new HttpError(503, "server_error", "PocketBase client lookup failed.");
   }
 }
 
@@ -84,7 +115,20 @@ export async function authenticateUser(email, password) {
       avatarUrl: buildAvatarUrl(user)
     };
   } catch (error) {
-    throw new HttpError(401, "access_denied", "Invalid email or password.");
+    if (error instanceof HttpError) {
+      throw error;
+    }
+
+    const status = error?.status || error?.response?.status;
+    if (status === 400 || status === 401) {
+      throw new HttpError(401, "access_denied", "Invalid email or password.");
+    }
+
+    logPocketBaseError("PocketBase authentication failed", error, {
+      email: email?.trim()?.toLowerCase?.() || email,
+      collection: config.usersCollection
+    });
+    throw new HttpError(503, "server_error", "PocketBase authentication failed.");
   }
 }
 
@@ -101,6 +145,27 @@ export async function registerUser({ email, password, name = "" }) {
       passwordConfirm: password
     });
   } catch (error) {
+    const status = error?.status || error?.response?.status;
+    if (!status || status >= 500) {
+      logPocketBaseError("PocketBase registration failed", error, {
+        email: email.trim().toLowerCase(),
+        collection: config.usersCollection
+      });
+      throw new HttpError(503, "server_error", "PocketBase registration failed.");
+    }
+
+    if (status !== 400) {
+      logPocketBaseError("PocketBase registration failed", error, {
+        email: email.trim().toLowerCase(),
+        collection: config.usersCollection
+      });
+      throw new HttpError(503, "server_error", "PocketBase registration failed.");
+    }
+
+    logPocketBaseError("PocketBase registration rejected", error, {
+      email: email.trim().toLowerCase(),
+      collection: config.usersCollection
+    });
     throw new HttpError(
       400,
       "registration_failed",
@@ -111,12 +176,33 @@ export async function registerUser({ email, password, name = "" }) {
 
 export async function requestUserVerification(email) {
   const pb = new PocketBase(config.pocketbaseUrl);
-  await pb.collection(config.usersCollection).requestVerification(email.trim().toLowerCase());
+
+  try {
+    await pb.collection(config.usersCollection).requestVerification(email.trim().toLowerCase());
+  } catch (error) {
+    logPocketBaseError("PocketBase verification email request failed", error, {
+      email: email.trim().toLowerCase(),
+      collection: config.usersCollection
+    });
+    throw new HttpError(
+      502,
+      "email_delivery_failed",
+      "Unable to send the verification email right now."
+    );
+  }
 }
 
 export async function deleteUserById(userId) {
   const pb = await getAdminClient();
-  await pb.collection(config.usersCollection).delete(userId);
+  try {
+    await pb.collection(config.usersCollection).delete(userId);
+  } catch (error) {
+    logPocketBaseError("PocketBase cleanup delete failed", error, {
+      userId,
+      collection: config.usersCollection
+    });
+    throw error;
+  }
 }
 
 export async function getUserById(userId) {
