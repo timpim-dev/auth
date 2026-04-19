@@ -291,7 +291,11 @@ app.post(
       try {
         await requestUserVerification(email);
       } catch (verificationError) {
-        await deleteUserById(created.id);
+        try {
+          await deleteUserById(created.id);
+        } catch (cleanupError) {
+          console.error(cleanupError);
+        }
         throw new Error("Unable to send the verification email right now.");
       }
 
