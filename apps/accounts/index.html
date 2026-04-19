@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Felixx Accounts</title>
+    <meta name="description" content="Manage your Felixx profile, apps, usage, and sessions.">
+    <link rel="stylesheet" href="./styles.css">
+    <script>
+      window.FELIXX_AUTH_CONFIG = {
+        authBaseUrl: "https://auth.felixx.dev",
+        clientId: "felixx-accounts",
+        scope: "openid profile email offline_access",
+        storageKey: "felixx.accounts.oauth",
+        pkceStateKey: "felixx.accounts.oauth_state",
+        pkceVerifierKey: "felixx.accounts.code_verifier"
+      };
+    </script>
+  </head>
+<body>
+  <div class="page-shell">
+    <aside class="hero-panel">
+      <p class="eyebrow">Felixx Identity</p>
+      <h1>Accounts</h1>
+      <p class="hero-copy">
+        One place for profile changes, app access, AI usage, and live sessions across the Felixx platform.
+      </p>
+      <div class="hero-grid">
+        <article>
+          <span>OAuth</span>
+          <strong>PKCE-first login</strong>
+        </article>
+        <article>
+          <span>Usage</span>
+          <strong>Requests and token counts</strong>
+        </article>
+        <article>
+          <span>Sessions</span>
+          <strong>Remote sign-out controls</strong>
+        </article>
+      </div>
+    </aside>
+
+    <main class="app-panel">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Personal platform</p>
+          <h2>Control Center</h2>
+        </div>
+        <div class="session-badge" id="session-badge">Signed out</div>
+      </header>
+
+      <section class="auth-card" id="auth-card">
+        <div>
+          <p class="eyebrow">Sign in</p>
+          <h3>Use Felixx identity</h3>
+          <p class="muted">This portal authenticates through the Felixx auth server using Authorization Code + PKCE.</p>
+        </div>
+        <div class="auth-actions">
+          <button class="primary-button" id="login-button" type="button">Continue with Felixx</button>
+          <button class="ghost-button hidden" id="logout-button" type="button">Sign out</button>
+        </div>
+        <p class="status-text" id="auth-status">Waiting for sign-in.</p>
+      </section>
+
+      <nav class="tabbar" id="tabbar">
+        <button class="tab active" data-tab="profile" type="button">Profile</button>
+        <button class="tab" data-tab="password" type="button">Password</button>
+        <button class="tab" data-tab="apps" type="button">Apps</button>
+        <button class="tab" data-tab="usage" type="button">AI Usage</button>
+        <button class="tab" data-tab="sessions" type="button">Sessions</button>
+      </nav>
+
+      <section class="panel-grid" id="panel-grid">
+        <article class="panel active" data-panel="profile">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h3>Your account details</h3>
+            </div>
+            <div class="avatar-preview" id="avatar-preview">FX</div>
+          </div>
+          <form class="stack-form" id="profile-form">
+            <label>
+              <span>Name</span>
+              <input id="profile-name" name="name" type="text" placeholder="Felixx">
+            </label>
+            <label>
+              <span>Email</span>
+              <input id="profile-email" name="email" type="email" placeholder="you@felixx.dev">
+            </label>
+            <label>
+              <span>Avatar URL</span>
+              <input id="profile-avatar" name="avatar" type="url" placeholder="https://...">
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Save profile</button>
+            </div>
+            <p class="status-text" id="profile-status">Profile not loaded.</p>
+          </form>
+        </article>
+
+        <article class="panel" data-panel="password">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Security</p>
+              <h3>Rotate your password</h3>
+            </div>
+          </div>
+          <form class="stack-form" id="password-form">
+            <label>
+              <span>Current password</span>
+              <input id="current-password" name="currentPassword" type="password" autocomplete="current-password">
+            </label>
+            <label>
+              <span>New password</span>
+              <input id="new-password" name="newPassword" type="password" autocomplete="new-password">
+            </label>
+            <label>
+              <span>Confirm password</span>
+              <input id="confirm-password" name="confirmPassword" type="password" autocomplete="new-password">
+            </label>
+            <div class="form-actions">
+              <button class="primary-button" type="submit">Change password</button>
+            </div>
+            <p class="status-text" id="password-status">No pending changes.</p>
+          </form>
+        </article>
+
+        <article class="panel" data-panel="apps">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Connected Apps</p>
+              <h3>Trusted first-party access</h3>
+            </div>
+          </div>
+          <div class="list-shell" id="apps-list"></div>
+          <p class="status-text" id="apps-status">Apps not loaded.</p>
+        </article>
+
+        <article class="panel" data-panel="usage">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">AI Usage</p>
+              <h3>Consumption across Felixx AI</h3>
+            </div>
+          </div>
+          <div class="metric-row">
+            <article class="metric-card">
+              <span>Total requests</span>
+              <strong id="requests-total">0</strong>
+            </article>
+            <article class="metric-card">
+              <span>Total tokens</span>
+              <strong id="tokens-total">0</strong>
+            </article>
+            <article class="metric-card">
+              <span>Last 30 days</span>
+              <strong id="requests-month">0</strong>
+            </article>
+          </div>
+          <div class="list-shell" id="usage-list"></div>
+          <p class="status-text" id="usage-status">Usage not loaded.</p>
+        </article>
+
+        <article class="panel" data-panel="sessions">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Sessions</p>
+              <h3>Active devices and browsers</h3>
+            </div>
+          </div>
+          <div class="list-shell" id="sessions-list"></div>
+          <p class="status-text" id="sessions-status">Sessions not loaded.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./app.js" type="module"></script>
+</body>
+</html>

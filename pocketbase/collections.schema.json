@@ -1,0 +1,83 @@
+{
+  "notes": [
+    "Create these collections in PocketBase before starting the auth server.",
+    "The built-in auth collection for Felixx users is assumed to be named `users`.",
+    "Field types are documented for PocketBase admin setup or API-based import."
+  ],
+  "collections": [
+    {
+      "name": "oauth_clients",
+      "type": "base",
+      "fields": [
+        { "name": "client_id", "type": "text", "required": true, "unique": true },
+        { "name": "name", "type": "text", "required": true },
+        { "name": "redirect_uris", "type": "json", "required": true },
+        { "name": "description", "type": "text" },
+        { "name": "homepage_url", "type": "url" },
+        { "name": "logo_url", "type": "url" },
+        { "name": "is_active", "type": "bool", "required": true, "default": true }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_oauth_clients_client_id ON oauth_clients (client_id)"
+      ]
+    },
+    {
+      "name": "oauth_auth_codes",
+      "type": "base",
+      "fields": [
+        { "name": "code_hash", "type": "text", "required": true, "unique": true },
+        { "name": "client", "type": "relation", "required": true, "collection": "oauth_clients", "maxSelect": 1 },
+        { "name": "user_id", "type": "text", "required": true },
+        { "name": "redirect_uri", "type": "url", "required": true },
+        { "name": "code_challenge", "type": "text", "required": true },
+        { "name": "code_challenge_method", "type": "select", "required": true, "values": ["S256", "plain"] },
+        { "name": "scope", "type": "text" },
+        { "name": "expires_at", "type": "date", "required": true },
+        { "name": "used_at", "type": "date" },
+        { "name": "metadata", "type": "json" }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_oauth_auth_codes_code_hash ON oauth_auth_codes (code_hash)"
+      ]
+    },
+    {
+      "name": "oauth_refresh_tokens",
+      "type": "base",
+      "fields": [
+        { "name": "token_hash", "type": "text", "required": true, "unique": true },
+        { "name": "jti", "type": "text", "required": true, "unique": true },
+        { "name": "client", "type": "relation", "required": true, "collection": "oauth_clients", "maxSelect": 1 },
+        { "name": "user_id", "type": "text", "required": true },
+        { "name": "scope", "type": "text" },
+        { "name": "session_id", "type": "text", "required": true },
+        { "name": "user_agent", "type": "text" },
+        { "name": "ip", "type": "text" },
+        { "name": "expires_at", "type": "date", "required": true },
+        { "name": "revoked_at", "type": "date" },
+        { "name": "replaced_by_jti", "type": "text" },
+        { "name": "last_used_at", "type": "date" }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_oauth_refresh_tokens_token_hash ON oauth_refresh_tokens (token_hash)",
+        "CREATE UNIQUE INDEX idx_oauth_refresh_tokens_jti ON oauth_refresh_tokens (jti)"
+      ]
+    },
+    {
+      "name": "ai_usage",
+      "type": "base",
+      "fields": [
+        { "name": "user_id", "type": "text", "required": true },
+        { "name": "app_name", "type": "text", "required": true },
+        { "name": "model", "type": "text" },
+        { "name": "request_count", "type": "number", "required": true, "min": 0, "default": 0 },
+        { "name": "tokens_used", "type": "number", "required": true, "min": 0, "default": 0 },
+        { "name": "period_start", "type": "date", "required": true },
+        { "name": "period_end", "type": "date", "required": true },
+        { "name": "metadata", "type": "json" }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_ai_usage_user_period ON ai_usage (user_id, period_start, period_end)"
+      ]
+    }
+  ]
+}

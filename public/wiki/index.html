@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Felixx Identity Wiki</title>
+    <meta
+      name="description"
+      content="Deployment guide for Felixx Identity on Vercel and integration notes for other services."
+    >
+    <style>
+      @import url(https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&family=Passero+One&display=swap);
+
+      :root {
+        color-scheme: dark;
+        --bg: #090909;
+        --bg2: #111111;
+        --panel: rgba(20, 20, 20, 0.94);
+        --panel2: rgba(28, 28, 28, 0.94);
+        --border: #2b2b2b;
+        --text: #f6ead6;
+        --muted: #9a8874;
+        --accent: #ff6a00;
+        --accent2: #ff9f1a;
+        --cyan: #55d6ff;
+        --danger: #ff7a70;
+        --success: #8ad66a;
+        --shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+        --r: 18px;
+      }
+
+      * { box-sizing: border-box; }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Passero One", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 106, 0, 0.16), transparent 28%),
+          radial-gradient(circle at bottom right, rgba(85, 214, 255, 0.1), transparent 24%),
+          linear-gradient(180deg, var(--bg), var(--bg2));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 106, 0, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 106, 0, 0.045) 1px, transparent 1px);
+        background-size: 36px 36px;
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      a {
+        color: var(--accent2);
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .layout {
+        width: min(1480px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 1rem 0 3rem;
+        display: grid;
+        grid-template-columns: 280px minmax(0, 1fr);
+        gap: 1rem;
+      }
+
+      .sidebar,
+      .article {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        box-shadow: var(--shadow);
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 1rem;
+        align-self: start;
+        padding: 1.2rem;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 1.65rem;
+        line-height: 0.95;
+        color: var(--accent);
+        text-shadow: 0 0 18px rgba(255, 106, 0, 0.15);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.42rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: rgba(255, 106, 0, 0.08);
+        color: var(--accent2);
+        font-family: "Jaro", sans-serif;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .sidebar nav {
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      .sidebar nav a {
+        padding: 0.7rem 0.8rem;
+        border-radius: 12px;
+        color: var(--text);
+        border: 1px solid transparent;
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .sidebar nav a:hover {
+        border-color: var(--border);
+        background: rgba(255, 106, 0, 0.06);
+      }
+
+      .sidebar .note {
+        margin-top: 1rem;
+        padding: 0.9rem;
+        border-radius: 14px;
+        background: var(--panel2);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      .article {
+        overflow: hidden;
+      }
+
+      .hero {
+        padding: 2rem 2rem 1.6rem;
+        border-bottom: 1px solid var(--border);
+        background:
+          linear-gradient(135deg, rgba(255, 106, 0, 0.09), transparent 36%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent);
+      }
+
+      .eyebrow {
+        margin: 0 0 0.8rem;
+        font-family: "Jaro", sans-serif;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4.3rem);
+        line-height: 0.95;
+        color: var(--accent);
+      }
+
+      .hero p {
+        max-width: 70ch;
+        color: var(--muted);
+        font-size: 1.05rem;
+        line-height: 1.65;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+      }
+
+      .stat,
+      .card,
+      .callout,
+      .codeblock {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--panel2);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.01) inset;
+      }
+
+      .stat {
+        padding: 1rem;
+      }
+
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-family: "Jaro", sans-serif;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 0.45rem;
+        font-size: 1.06rem;
+      }
+
+      .content {
+        padding: 1rem 2rem 2.2rem;
+      }
+
+      section {
+        padding: 1rem 0 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      section:last-child {
+        border-bottom: 0;
+      }
+
+      h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.6rem;
+        color: var(--accent2);
+      }
+
+      h4 {
+        margin: 0 0 0.45rem;
+        font-size: 1.12rem;
+      }
+
+      p, li {
+        color: var(--text);
+        line-height: 1.72;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+      }
+
+      .card,
+      .callout {
+        padding: 1rem 1rem 1.05rem;
+      }
+
+      .callout {
+        border-left: 4px solid var(--accent);
+      }
+
+      .callout.good {
+        border-left-color: var(--success);
+      }
+
+      .callout.warn {
+        border-left-color: var(--danger);
+      }
+
+      .codeblock {
+        margin: 0.9rem 0;
+        overflow: auto;
+        padding: 1rem;
+        background: #0d0d0d;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #edf4ff;
+        font: 0.92rem/1.55 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: var(--panel2);
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.85rem 0.95rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--accent2);
+        background: rgba(255, 106, 0, 0.05);
+      }
+
+      ul,
+      ol {
+        padding-left: 1.2rem;
+        margin: 0.5rem 0 0;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .checklist .card strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: var(--accent2);
+      }
+
+      .source-list {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .footer {
+        padding-top: 1rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      code {
+        padding: 0.16rem 0.36rem;
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: #ffd9b2;
+      }
+
+      @media (max-width: 1100px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: relative;
+          top: 0;
+        }
+
+        .hero-grid,
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .layout {
+          width: min(100%, calc(100% - 1rem));
+        }
+
+        .hero,
+        .content,
+        .sidebar {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div>
+            <p class="eyebrow">Felixx Identity</p>
+            <h1>Wiki</h1>
+          </div>
+          <div class="pill">Vercel guide</div>
+        </div>
+        <nav aria-label="Wiki sections">
+          <a href="#overview">Overview</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#vercel">Deploy on Vercel</a>
+          <a href="#env">Environment vars</a>
+          <a href="#pocketbase">PocketBase setup</a>
+          <a href="#clients">Integrate other services</a>
+          <a href="#examples">Example configs</a>
+          <a href="#ops">Operations and troubleshooting</a>
+          <a href="#sources">Sources</a>
+        </nav>
+        <div class="note">
+          This page documents how Felixx Identity is deployed, how the auth server fits on Vercel, and how new websites should hook into the central login flow.
+        </div>
+      </aside>
+
+      <main class="article">
+        <header class="hero" id="overview">
+          <p class="eyebrow">Deployment handbook</p>
+          <h2>Felixx Identity on Vercel, plus integration patterns for other services</h2>
+          <p>
+            The repository is split into three concerns:
+            the Express auth server, the account portal, and any external websites that use the same central login.
+            This guide explains where each piece runs, how to deploy the auth server to Vercel, and how to add new clients without copying brittle auth code everywhere.
+          </p>
+          <div class="hero-grid">
+            <div class="stat">
+              <span>Auth server</span>
+              <strong>Express app, exported as a Vercel Function</strong>
+            </div>
+            <div class="stat">
+              <span>Database</span>
+              <strong>PocketBase at <code>pocketbase.felixx.dev</code></strong>
+            </div>
+            <div class="stat">
+              <span>Clients</span>
+              <strong>Authorization Code + PKCE everywhere</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <section id="architecture">
+            <h3>Architecture</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>What lives where</h4>
+                <ul>
+                  <li><code>server/src/app.js</code>: OAuth endpoints, account APIs, and the Express app export.</li>
+                  <li><code>pocketbase/collections.schema.json</code>: the collections the auth layer expects.</li>
+                  <li><code>apps/accounts/</code>: first-party account portal.</li>
+                  <li><code>apps/example-client/</code>: a minimal client that demonstrates a reusable OAuth integration.</li>
+                  <li><code>public/wiki/index.html</code>: this guide page, served at <code>/wiki</code>.</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>Important separation</h4>
+                <ul>
+                  <li><strong>PocketBase is not the auth server.</strong> It stores records and user accounts.</li>
+                  <li><strong>The Express app is the auth server.</strong> It signs tokens and enforces OAuth rules.</li>
+                  <li><strong>Other websites are clients.</strong> They redirect users to Felixx Identity and exchange codes for tokens.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section id="vercel">
+            <h3>Deploying The Auth Server On Vercel</h3>
+            <div class="callout">
+              Vercel's Express guidance says the app can be deployed with zero configuration when the Express module is exported as a default export, and that static assets should live in <code>public/**</code>.
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <h4>1. Export the app</h4>
+                <p>
+                  The Express app is exported from <code>server/src/app.js</code>. The file only calls <code>app.listen</code> when run directly, so Vercel can import it as a function while local development still works.
+                </p>
+              </div>
+              <div class="card">
+                <h4>2. Keep the runtime Node-based</h4>
+                <p>
+                  The app depends on Node APIs and the PocketBase SDK. Keep it in the Node.js runtime and avoid moving auth logic to Edge unless you rewrite the dependencies for that environment.
+                </p>
+              </div>
+              <div class="card">
+                <h4>3. Attach environment variables</h4>
+                <p>
+                  Use Vercel environment variables for all secrets and environment-specific settings. New values only affect new deployments.
+                </p>
+              </div>
+              <div class="card">
+                <h4>4. Use a custom domain</h4>
+                <p>
+                  Point the production domain you want to the Vercel project, then set <code>AUTH_ISSUER</code> and any client configs to the same production URL.
+                </p>
+              </div>
+            </div>
+            <div class="codeblock">
+<pre>server/src/app.js
+
+if (process.argv[1] &amp;&amp; pathToFileURL(process.argv[1]).href === import.meta.url) {
+  app.listen(config.port, () =&gt; {
+    console.log(`Felixx auth server listening on :${config.port}`);
+  });
+}
+
+export default app;</pre>
+            </div>
+            <div class="callout good">
+              On Vercel, connect the repository, set the production domain, and push a deployment. The Express app becomes a single Vercel Function, while files in <code>public/**</code> are served statically.
+            </div>
+          </section>
+
+          <section id="env">
+            <h3>Environment Variables</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Purpose</th>
+                  <th>Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>POCKETBASE_URL</code></td>
+                  <td>The PocketBase instance the auth server uses for admin reads/writes and user auth.</td>
+                  <td><code>https://pocketbase.felixx.dev</code></td>
+                </tr>
+                <tr>
+                  <td><code>POCKETBASE_ADMIN_EMAIL</code></td>
+                  <td>PocketBase admin account email.</td>
+                  <td><code>fake.felix@protonmail.com</code></td>
+                </tr>
+                <tr>
+                  <td><code>POCKETBASE_ADMIN_PASSWORD</code></td>
+                  <td>Stored in Vercel as a secret environment variable.</td>
+                  <td>Set in Vercel dashboard or CLI</td>
+                </tr>
+                <tr>
+                  <td><code>ACCESS_TOKEN_SECRET</code></td>
+                  <td>JWT signing secret for access tokens.</td>
+                  <td>A long random secret</td>
+                </tr>
+                <tr>
+                  <td><code>REFRESH_TOKEN_SECRET</code></td>
+                  <td>JWT signing secret for refresh tokens.</td>
+                  <td>A different long random secret</td>
+                </tr>
+                <tr>
+                  <td><code>ALLOWED_ORIGINS</code></td>
+                  <td>Comma-separated first-party origins that may call the auth API from browsers.</td>
+                  <td><code>https://accounts.felixx.dev,https://app.example.com</code></td>
+                </tr>
+                <tr>
+                  <td><code>AUTH_ISSUER</code></td>
+                  <td>The public issuer string embedded in JWTs and documentation.</td>
+                  <td><code>https://auth.felixx.dev</code></td>
+                </tr>
+                <tr>
+                  <td><code>ACCOUNTS_APP_URL</code></td>
+                  <td>Where account links should point.</td>
+                  <td><code>https://accounts.felixx.dev</code></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="callout warn">
+              Vercel environment variables are environment-scoped. If you change them, redeploy. Previous deployments do not inherit the new values automatically.
+            </div>
+          </section>
+
+          <section id="pocketbase">
+            <h3>PocketBase Setup</h3>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Required collections</h4>
+                <ul>
+                  <li><code>users</code></li>
+                  <li><code>oauth_clients</code></li>
+                  <li><code>oauth_auth_codes</code></li>
+                  <li><code>oauth_refresh_tokens</code></li>
+                  <li><code>ai_usage</code></li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>Admin access</h4>
+                <p>
+                  The auth server authenticates to PocketBase as an admin user to manage OAuth clients, authorization codes, refresh tokens, and profile updates.
+                  The admin email is fixed in the environment and the password should come from a secret store.
+                </p>
+              </div>
+            </div>
+            <div class="codeblock">
+<pre>.env production example
+
+POCKETBASE_URL=https://pocketbase.felixx.dev
+POCKETBASE_ADMIN_EMAIL=fake.felix@protonmail.com
+POCKETBASE_ADMIN_PASSWORD=...secret...
+ACCESS_TOKEN_SECRET=...secret...
+REFRESH_TOKEN_SECRET=...secret...
+ALLOWED_ORIGINS=https://accounts.felixx.dev,https://new-app.example.com
+AUTH_ISSUER=https://auth.felixx.dev
+ACCOUNTS_APP_URL=https://accounts.felixx.dev</pre>
+            </div>
+          </section>
+
+          <section id="clients">
+            <h3>Integrating Other Services</h3>
+            <div class="card">
+              <h4>Standard client flow</h4>
+              <ol>
+                <li>Register a client in PocketBase with a unique <code>client_id</code>.</li>
+                <li>Add the exact redirect URI for that service.</li>
+                <li>Make the service redirect users to <code>/authorize</code> with PKCE.</li>
+                <li>Exchange the returned authorization code at <code>/token</code>.</li>
+                <li>Store only what the service needs, and prefer short-lived access tokens plus refresh token rotation.</li>
+              </ol>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <h4>Browser-only apps</h4>
+                <p>
+                  Use the shared helper module in <code>apps/shared/oauth.js</code>. Inject per-site config in the page HTML and keep the auth server URL and client id out of the app logic.
+                </p>
+              </div>
+              <div class="card">
+                <h4>Backend-rendered apps</h4>
+                <p>
+                  The browser can still start the authorization redirect, but the code exchange and refresh flow can also be moved to a backend if you want fewer tokens in the browser.
+                </p>
+              </div>
+            </div>
+            <div class="callout">
+              The important part is to keep Authorization Code + PKCE intact, because it is the flow this repo is already built around.
+            </div>
+          </section>
+
+          <section id="examples">
+            <h3>Example Client Configuration</h3>
+            <div class="codeblock">
+<pre>&lt;!-- apps/example-client/index.html --&gt;
+&lt;script&gt;
+  window.FELIXX_AUTH_CONFIG = {
+    authBaseUrl: "https://auth.felixx.dev",
+    clientId: "felixx-example-client",
+    scope: "openid profile email offline_access",
+    storageKey: "felixx-example-session",
+    pkceStateKey: "felixx-example-pending",
+    pkceVerifierKey: "felixx-example-code-verifier"
+  };
+&lt;/script&gt;</pre>
+            </div>
+            <div class="codeblock">
+<pre>&lt;!-- apps/accounts/index.html --&gt;
+&lt;script&gt;
+  window.FELIXX_AUTH_CONFIG = {
+    authBaseUrl: "https://auth.felixx.dev",
+    clientId: "felixx-accounts",
+    scope: "openid profile email offline_access",
+    storageKey: "felixx.accounts.oauth",
+    pkceStateKey: "felixx.accounts.oauth_state",
+    pkceVerifierKey: "felixx.accounts.code_verifier"
+  };
+&lt;/script&gt;</pre>
+            </div>
+            <div class="card">
+              <h4>Reusable helper module</h4>
+              <p>
+                The browser helper in <code>apps/shared/oauth.js</code> centralizes the generic pieces:
+                config resolution, PKCE utilities, auth URL generation, JSON fetch helpers, and JWT parsing.
+                New websites can import it instead of rewriting those primitives.
+              </p>
+            </div>
+          </section>
+
+          <section id="ops">
+            <h3>Operational Checklist and Troubleshooting</h3>
+            <div class="checklist">
+              <div class="card">
+                <strong>Before first deployment</strong>
+                <p>Verify the PocketBase schema exists, the admin email/password are correct, and the auth server domain matches the issuer you want to publish.</p>
+              </div>
+              <div class="card">
+                <strong>Before adding a new service</strong>
+                <p>Register the service in <code>oauth_clients</code>, configure its redirect URL exactly, and add its browser origin to <code>ALLOWED_ORIGINS</code> if it calls the auth API from the client side.</p>
+              </div>
+              <div class="card">
+                <strong>If login fails</strong>
+                <p>Check the browser callback URL, the client id, the redirect URI, and whether the PKCE verifier still exists in session storage.</p>
+              </div>
+              <div class="card">
+                <strong>If PocketBase requests fail</strong>
+                <p>Confirm <code>POCKETBASE_URL</code> points to PocketBase itself, not the auth server, and make sure the admin credentials are set in Vercel.</p>
+              </div>
+              <div class="card">
+                <strong>If CORS blocks the browser</strong>
+                <p>Add the exact origin to <code>ALLOWED_ORIGINS</code>. CORS matching here is strict by origin string.</p>
+              </div>
+              <div class="card">
+                <strong>If Vercel changes do not appear</strong>
+                <p>Deploy again after changing environment variables. Vercel only applies new environment values to new deployments.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="sources">
+            <h3>Sources</h3>
+            <div class="source-list">
+              <div class="card">
+                <strong><a href="https://vercel.com/docs/environment-variables" target="_blank" rel="noreferrer">Vercel environment variables</a></strong>
+                <p class="muted">Used for the rules about environment-scoped values and new deployments.</p>
+              </div>
+              <div class="card">
+                <strong><a href="https://vercel.com/docs/frameworks/backend/express" target="_blank" rel="noreferrer">Express on Vercel</a></strong>
+                <p class="muted">Used for the guidance on exporting the app and serving static files from <code>public/**</code>.</p>
+              </div>
+              <div class="card">
+                <strong><a href="https://vercel.com/docs/project-configuration/vercel-json" target="_blank" rel="noreferrer">Vercel project configuration</a></strong>
+                <p class="muted">Used for project-level config behavior and file-based overrides.</p>
+              </div>
+              <div class="card">
+                <strong><a href="https://vercel.com/docs/rewrites" target="_blank" rel="noreferrer">Vercel rewrites</a></strong>
+                <p class="muted">Useful if you later want to route friendly paths to the wiki or to API endpoints without changing browser URLs.</p>
+              </div>
+            </div>
+          </section>
+
+          <div class="footer">
+            This wiki is meant to stay close to the code. When deployment behavior changes, update this page and the repo docs together.
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

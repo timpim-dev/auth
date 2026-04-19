@@ -1,0 +1,105 @@
+@import url(https://fonts.googleapis.com/css2?family=Jaro:opsz@6..72&family=Passero+One&display=swap);
+
+:root {
+  color-scheme: dark;
+  --bg: #111;
+  --panel: #1a1a1a;
+  --panel2: #222;
+  --text: #f5e6d0;
+  --muted: #8a7a6a;
+  --accent: #ff6a00;
+  --accent2: #ff9900;
+  --danger: #e74c3c;
+  --border: #2e2e2e;
+  --glow: rgba(255, 106, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Passero One", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 106, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 106, 0, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.shell {
+  width: min(68rem, calc(100% - 2rem));
+  margin: 3rem auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.hero,
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 0 40px rgba(255, 106, 0, 0.05);
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: "Jaro", sans-serif;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.85rem 1.15rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #180d04;
+}
+
+button.ghost {
+  background: var(--panel2);
+  color: var(--text);
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+pre {
+  margin: 0;
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #0a0a0a;
+  color: #eef4ff;
+}

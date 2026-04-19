@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Felixx OAuth Example Client</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script>
+      window.FELIXX_AUTH_CONFIG = {
+        authBaseUrl: "https://auth.felixx.dev",
+        clientId: "felixx-example-client",
+        scope: "openid profile email offline_access",
+        storageKey: "felixx-example-session",
+        pkceStateKey: "felixx-example-pending",
+        pkceVerifierKey: "felixx-example-code-verifier"
+      };
+    </script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Example first-party app</p>
+        <h1>Felixx OAuth client</h1>
+        <p>This sample uses Authorization Code + PKCE against the Felixx auth server.</p>
+        <div class="actions">
+          <button id="login-button">Sign in with Felixx</button>
+          <button id="refresh-button" class="ghost">Refresh access token</button>
+          <button id="logout-button" class="ghost danger">Revoke refresh token</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Session</h2>
+        <pre id="session-output">No tokens yet.</pre>
+      </section>
+
+      <section class="panel">
+        <h2>Userinfo</h2>
+        <pre id="userinfo-output">Sign in to load profile.</pre>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
