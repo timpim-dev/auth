@@ -113,6 +113,17 @@ function renderPage({
         cursor: pointer;
         text-decoration: none;
       }
+      a.text-link {
+        display: inline;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--accent2);
+        text-decoration: underline;
+        text-underline-offset: 0.18em;
+        font-weight: 400;
+      }
       .secondary {
         background: transparent;
         color: var(--text);
@@ -189,7 +200,7 @@ export function renderAuthorizePage({ query, clientName, error = "" }) {
         </div>
       </form>
       <div class="footer">
-        New here? <a class="button secondary" href="${registerHref}">Create account</a>
+        New here? <a class="text-link" href="${registerHref}">Create account</a>
       </div>
     `
   });
