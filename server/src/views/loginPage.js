@@ -230,7 +230,7 @@ export function renderRegisterPage({ query, clientName, error = "" }) {
       </form>
       <div class="footer">
         Already have an account?
-        <a class="button secondary" href="/authorize?${queryString(query)}">Back to sign in</a>
+        <a class="text-link" href="/authorize?${queryString(query)}">Back to sign in</a>
       </div>
     `
   });
