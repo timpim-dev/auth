@@ -56,9 +56,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.get("/account", (req, res) => {
-  res.redirect(302, "/account/");
+  res.sendFile(path.resolve(accountsAppDir, "index.html"));
 });
-app.use("/account", express.static(accountsAppDir));
+app.get("/account/", (req, res) => {
+  res.sendFile(path.resolve(accountsAppDir, "index.html"));
+});
+app.use("/account", express.static(accountsAppDir, { redirect: false }));
 app.use("/shared", express.static(sharedAppDir));
 app.get("/wiki", (req, res) => {
   res.redirect(302, "/wiki/");
