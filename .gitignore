@@ -2,3 +2,5 @@
 .env.example
 AGENTS.md
 explain.md
+./pocketbase/collections-checklist.md
+./pocketbase/collections-guide.md

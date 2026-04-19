@@ -69,35 +69,15 @@ Purpose:
 
 Fields:
 
-1. `client_id`
-   - Type: `Text`
-   - Required: yes
-   - Unique: yes
-
-2. `name`
-   - Type: `Text`
-   - Required: yes
-
-3. `redirect_uris`
-   - Type: `JSON`
-   - Required: yes
-
-4. `description`
-   - Type: `Text`
-   - Required: no
-
-5. `homepage_url`
-   - Type: `URL`
-   - Required: no
-
-6. `logo_url`
-   - Type: `URL`
-   - Required: no
-
-7. `is_active`
-   - Type: `Bool`
-   - Required: yes
-   - Default: `true`
+| Field | PocketBase UI type | Required | Notes |
+| --- | --- | --- | --- |
+| `client_id` | Plain text | Yes | Must be unique |
+| `name` | Plain text | Yes | Human-readable client name |
+| `redirect_uris` | JSON | Yes | Store a JSON array of full URLs |
+| `description` | Plain text | No | Optional description |
+| `homepage_url` | Url | No | Optional website URL |
+| `logo_url` | Url | No | Optional logo URL |
+| `is_active` | Bool | Yes | Default `true` |
 
 Indexes:
 
@@ -138,49 +118,18 @@ Purpose:
 
 Fields:
 
-1. `code_hash`
-   - Type: `Text`
-   - Required: yes
-   - Unique: yes
-
-2. `client`
-   - Type: `Relation`
-   - Required: yes
-   - Collection: `oauth_clients`
-   - Max select: `1`
-
-3. `user_id`
-   - Type: `Text`
-   - Required: yes
-
-4. `redirect_uri`
-   - Type: `URL`
-   - Required: yes
-
-5. `code_challenge`
-   - Type: `Text`
-   - Required: yes
-
-6. `code_challenge_method`
-   - Type: `Select`
-   - Required: yes
-   - Values: `S256`, `plain`
-
-7. `scope`
-   - Type: `Text`
-   - Required: no
-
-8. `expires_at`
-   - Type: `Date`
-   - Required: yes
-
-9. `used_at`
-   - Type: `Date`
-   - Required: no
-
-10. `metadata`
-    - Type: `JSON`
-    - Required: no
+| Field | PocketBase UI type | Required | Notes |
+| --- | --- | --- | --- |
+| `code_hash` | Plain text | Yes | Must be unique |
+| `client` | Relation | Yes | Relation to `oauth_clients`, max select `1` |
+| `user_id` | Plain text | Yes | PocketBase user record id |
+| `redirect_uri` | Url | Yes | Exact redirect URL |
+| `code_challenge` | Plain text | Yes | PKCE challenge |
+| `code_challenge_method` | Select | Yes | Allowed values: `S256`, `plain` |
+| `scope` | Plain text | No | Space-separated scopes |
+| `expires_at` | DateTime | Yes | Expiration timestamp |
+| `used_at` | DateTime | No | Set when consumed |
+| `metadata` | JSON | No | User agent and IP data |
 
 Indexes:
 
@@ -206,57 +155,20 @@ Purpose:
 
 Fields:
 
-1. `token_hash`
-   - Type: `Text`
-   - Required: yes
-   - Unique: yes
-
-2. `jti`
-   - Type: `Text`
-   - Required: yes
-   - Unique: yes
-
-3. `client`
-   - Type: `Relation`
-   - Required: yes
-   - Collection: `oauth_clients`
-   - Max select: `1`
-
-4. `user_id`
-   - Type: `Text`
-   - Required: yes
-
-5. `scope`
-   - Type: `Text`
-   - Required: no
-
-6. `session_id`
-   - Type: `Text`
-   - Required: yes
-
-7. `user_agent`
-   - Type: `Text`
-   - Required: no
-
-8. `ip`
-   - Type: `Text`
-   - Required: no
-
-9. `expires_at`
-   - Type: `Date`
-   - Required: yes
-
-10. `revoked_at`
-    - Type: `Date`
-    - Required: no
-
-11. `replaced_by_jti`
-    - Type: `Text`
-    - Required: no
-
-12. `last_used_at`
-    - Type: `Date`
-    - Required: no
+| Field | PocketBase UI type | Required | Notes |
+| --- | --- | --- | --- |
+| `token_hash` | Plain text | Yes | Must be unique |
+| `jti` | Plain text | Yes | Must be unique |
+| `client` | Relation | Yes | Relation to `oauth_clients`, max select `1` |
+| `user_id` | Plain text | Yes | PocketBase user record id |
+| `scope` | Plain text | No | Space-separated scopes |
+| `session_id` | Plain text | Yes | Session id used by the account portal |
+| `user_agent` | Plain text | No | Browser user agent |
+| `ip` | Plain text | No | IP address |
+| `expires_at` | DateTime | Yes | Expiration timestamp |
+| `revoked_at` | DateTime | No | Set when revoked |
+| `replaced_by_jti` | Plain text | No | Next token id after rotation |
+| `last_used_at` | DateTime | No | Updated on use |
 
 Indexes:
 
@@ -283,41 +195,16 @@ Purpose:
 
 Fields:
 
-1. `user_id`
-   - Type: `Text`
-   - Required: yes
-
-2. `app_name`
-   - Type: `Text`
-   - Required: yes
-
-3. `model`
-   - Type: `Text`
-   - Required: no
-
-4. `request_count`
-   - Type: `Number`
-   - Required: yes
-   - Min: `0`
-   - Default: `0`
-
-5. `tokens_used`
-   - Type: `Number`
-   - Required: yes
-   - Min: `0`
-   - Default: `0`
-
-6. `period_start`
-   - Type: `Date`
-   - Required: yes
-
-7. `period_end`
-   - Type: `Date`
-   - Required: yes
-
-8. `metadata`
-   - Type: `JSON`
-   - Required: no
+| Field | PocketBase UI type | Required | Notes |
+| --- | --- | --- | --- |
+| `user_id` | Plain text | Yes | PocketBase user record id |
+| `app_name` | Plain text | Yes | Displayed in the account portal |
+| `model` | Plain text | No | Optional model name |
+| `request_count` | Number | Yes | Min `0`, default `0` |
+| `tokens_used` | Number | Yes | Min `0`, default `0` |
+| `period_start` | DateTime | Yes | Period start timestamp |
+| `period_end` | DateTime | Yes | Period end timestamp |
+| `metadata` | JSON | No | Optional extra usage info |
 
 Indexes:
 
@@ -352,9 +239,21 @@ For the first-party Felixx accounts portal, create this client:
 - `redirect_uris`: `["https://auth.felixx.dev/account/"]`
 - `is_active`: `true`
 
+## PocketBase UI Cheat Sheet
+
+Use these field types when clicking through the PocketBase admin:
+
+- `Plain text` = simple string field
+- `Url` = PocketBase URL field
+- `DateTime` = date/time picker field
+- `Select` = dropdown field with fixed values
+- `Relation` = link to another collection
+- `JSON` = JSON editor field
+- `Bool` = true/false toggle
+- `Number` = numeric field
+
 ## Code References
 
 - `server/src/config.js`
 - `server/src/lib/pocketbase.js`
 - `pocketbase/collections.schema.json`
-
